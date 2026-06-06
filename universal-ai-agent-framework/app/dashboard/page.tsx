@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic"
+
 import Link from "next/link"
 import { FlaskConical, BarChart3, Play, TrendingUp, Plus, ArrowRight, CheckCircle2, XCircle } from "lucide-react"
 import { db } from "@/lib/db"
@@ -31,11 +33,11 @@ async function getDashboardData() {
   const avgPassRate =
     completedRuns.length > 0
       ? Math.round(
-          completedRuns.reduce((sum, r) => {
-            const total = (r.passCount ?? 0) + (r.failCount ?? 0)
-            return sum + (total > 0 ? ((r.passCount ?? 0) / total) * 100 : 0)
-          }, 0) / completedRuns.length
-        )
+        completedRuns.reduce((sum, r) => {
+          const total = (r.passCount ?? 0) + (r.failCount ?? 0)
+          return sum + (total > 0 ? ((r.passCount ?? 0) / total) * 100 : 0)
+        }, 0) / completedRuns.length
+      )
       : 0
 
   const barData = completedRuns.slice(0, 8).reverse().map((r, i) => {
@@ -114,12 +116,11 @@ export default async function DashboardPage() {
                 <s.icon className="w-3.5 h-3.5 text-primary" />
               </div>
             </div>
-            <div className={`text-2xl font-bold ${
-              s.accent === "emerald" ? "text-emerald-500" :
-              s.accent === "amber" ? "text-amber-500" :
-              s.accent === "red" ? "text-red-500" :
-              "text-foreground"
-            }`}>
+            <div className={`text-2xl font-bold ${s.accent === "emerald" ? "text-emerald-500" :
+                s.accent === "amber" ? "text-amber-500" :
+                  s.accent === "red" ? "text-red-500" :
+                    "text-foreground"
+              }`}>
               {s.value}
             </div>
           </Link>
@@ -186,10 +187,9 @@ export default async function DashboardPage() {
                     </td>
                     <td className="px-4 py-2.5">
                       {total > 0 ? (
-                        <span className={`text-sm font-semibold ${
-                          passRate >= 80 ? "text-emerald-500" :
-                          passRate >= 50 ? "text-amber-500" : "text-red-500"
-                        }`}>
+                        <span className={`text-sm font-semibold ${passRate >= 80 ? "text-emerald-500" :
+                            passRate >= 50 ? "text-amber-500" : "text-red-500"
+                          }`}>
                           {passRate}%
                         </span>
                       ) : <span className="text-sm text-muted-foreground">—</span>}

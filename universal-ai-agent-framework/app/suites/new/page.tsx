@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft, Loader2, Bot } from "lucide-react"
@@ -19,6 +19,13 @@ export default function NewSuitePage() {
     judgeModel: DEFAULT_JUDGE_MODEL,
   })
 
+  useEffect(() => {
+    setForm((prev) => ({
+      ...prev,
+      agentUrl: `${window.location.origin}/api/mock-agent`,
+    }))
+  }, [])
+
   function set(field: string, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }))
   }
@@ -28,7 +35,10 @@ export default function NewSuitePage() {
 
     if (!form.name.trim()) { toast.error("Suite name is required"); return }
     if (!form.agentUrl.trim()) { toast.error("Agent API URL is required"); return }
-    try { new URL(form.agentUrl) } catch { toast.error("Agent API URL must be a valid URL"); return }
+    const isRelative = form.agentUrl.startsWith("/")
+    if (!isRelative) {
+      try { new URL(form.agentUrl) } catch { toast.error("Agent API URL must be a valid URL or a relative path starting with /"); return }
+    }
 
     setLoading(true)
     const tid = toast.loading("Creating suite…")
@@ -52,6 +62,7 @@ export default function NewSuitePage() {
       }
       toast.success("Suite created!", { id: tid })
       router.push(`/suites/${data.id}`)
+      router.refresh()
     } catch {
       toast.error("Network error — please try again", { id: tid })
     } finally {
@@ -104,7 +115,7 @@ export default function NewSuitePage() {
               Agent API URL <span className="text-destructive">*</span>
             </label>
             <input
-              type="url"
+              type="text"
               required
               value={form.agentUrl}
               onChange={(e) => set("agentUrl", e.target.value)}
@@ -112,7 +123,7 @@ export default function NewSuitePage() {
               className="w-full h-9 px-3 text-sm border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring font-mono"
             />
             <p className="mt-1 text-xs text-muted-foreground">
-              Use <code className="bg-muted px-1 rounded text-foreground">http://localhost:3000/api/mock-agent</code> for the built-in mock
+              Pre-filled with the built-in mock agent on your domain. Replace with your real agent URL to test it.
             </p>
           </div>
 

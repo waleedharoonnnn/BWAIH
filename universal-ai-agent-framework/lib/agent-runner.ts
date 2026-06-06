@@ -10,11 +10,39 @@ export class AgentRunnerError extends Error {
   }
 }
 
+function resolveUrl(url: string): string {
+  const base =
+    process.env.NEXT_PUBLIC_APP_URL ??
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
+
+  // Relative path → prepend base
+  if (url.startsWith("/")) return `${base}${url}`
+
+  // Localhost URL running in a deployed environment → swap host
+  if (
+    (url.includes("localhost") || url.includes("127.0.0.1")) &&
+    (process.env.VERCEL_URL || process.env.NEXT_PUBLIC_APP_URL)
+  ) {
+    try {
+      const parsed = new URL(url)
+      const baseUrl = new URL(base)
+      parsed.protocol = baseUrl.protocol
+      parsed.host = baseUrl.host
+      return parsed.toString()
+    } catch {
+      return url
+    }
+  }
+
+  return url
+}
+
 export async function runTestCase(
   agentUrl: string,
   authKey: string | null,
   triggerPrompt: string
 ): Promise<{ trace: TraceStep[]; response: string; tokenUsage: number; stepCount: number }> {
+  agentUrl = resolveUrl(agentUrl)
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), 30_000)
 

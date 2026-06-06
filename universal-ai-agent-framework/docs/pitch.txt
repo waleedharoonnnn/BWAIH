@@ -1,0 +1,37 @@
+---
+  AgentTest — Verbal Pitch
+
+  ---
+  Hey everyone.
+
+  So quick question — how many of you have built something with AI, deployed it, and then just... hoped it works? [pause] Yeah. That's the problem.
+
+  We're building AI agents faster than we can verify they actually do what we want. No one's testing whether the agent called the right tools, stayed on
+  topic, or just made stuff up. We're basically shipping blind.
+
+  That's what AgentTest fixes.
+
+  It's a testing framework for AI agents. You point it at your agent, tell it what a correct answer looks like, and it runs the tests — automatically. No
+  code required.
+
+  Here's how it works in 30 seconds:
+
+  You create a test suite. You add test cases — each one has a prompt, the tools you expect the agent to use, and a golden response. You hit run. AgentTest
+  calls your agent, checks the tool sequence, evaluates every assertion, and then sends the response to a Groq LLM to score how semantically accurate it is
+  — from 0 to 100.
+
+  If the score is below 50, or if it detects a hallucination, the test fails. And you see exactly why.
+
+  Everything streams live in the browser. No refresh, no waiting. You watch each test pass or fail in real time.
+
+  We also built an agent comparison feature — so you can take two versions of the same agent, benchmark them head to head across accuracy, semantic quality,
+   token efficiency, and speed, and actually know which one to ship.
+
+  The whole thing runs on Next.js, Neon Postgres, and Groq. It's deployed on Vercel. And yes — it has dark mode. [pause] Priorities.
+
+  The real insight here is simple: AI agents are software. Software gets tested. This is that testing layer — and right now, almost nobody has it.
+
+  Thanks.
+
+  ---
+  [~2 minutes at a comfortable speaking pace]

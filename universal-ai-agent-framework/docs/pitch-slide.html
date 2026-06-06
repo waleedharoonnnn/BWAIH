@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AgentTest — Pitch Slide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@500&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 1280px;
+    height: 720px;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .slide {
+    width: 1280px;
+    height: 720px;
+    background: #080d1a;
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 380px 1fr;
+  }
+
+  /* ── BACKGROUND DECORATION ── */
+  .bg-glow-1 {
+    position: absolute;
+    top: -160px; left: -100px;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(37,99,235,0.18) 0%, transparent 65%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .bg-glow-2 {
+    position: absolute;
+    bottom: -120px; right: 280px;
+    width: 420px; height: 420px;
+    background: radial-gradient(circle, rgba(124,58,237,0.14) 0%, transparent 65%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .bg-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+  }
+
+  /* ── LEFT PANEL ── */
+  .left {
+    padding: 52px 44px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-right: 1px solid rgba(255,255,255,0.07);
+    position: relative;
+    z-index: 2;
+  }
+
+  .logo-area { }
+
+  .logo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(37,99,235,0.15);
+    border: 1px solid rgba(37,99,235,0.35);
+    border-radius: 999px;
+    padding: 4px 12px 4px 8px;
+    margin-bottom: 20px;
+  }
+
+  .logo-dot {
+    width: 8px; height: 8px;
+    background: #3b82f6;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #3b82f6;
+  }
+
+  .logo-badge-text {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #93c5fd;
+  }
+
+  .logo {
+    font-size: 56px;
+    font-weight: 900;
+    line-height: 1;
+    color: white;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+  }
+
+  .logo span {
+    background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .tagline {
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 400;
+    line-height: 1.5;
+    max-width: 280px;
+    margin-bottom: 32px;
+  }
+
+  .divider {
+    width: 40px;
+    height: 2px;
+    background: linear-gradient(90deg, #2563eb, #7c3aed);
+    border-radius: 2px;
+    margin-bottom: 28px;
+  }
+
+  .problem {
+    background: rgba(220,38,38,0.07);
+    border: 1px solid rgba(220,38,38,0.2);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+  }
+
+  .problem-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #f87171;
+    margin-bottom: 6px;
+  }
+
+  .problem-text {
+    font-size: 13px;
+    color: #fca5a5;
+    line-height: 1.5;
+    font-weight: 400;
+  }
+
+  .solution {
+    background: rgba(5,150,105,0.07);
+    border: 1px solid rgba(5,150,105,0.2);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+
+  .solution-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #34d399;
+    margin-bottom: 6px;
+  }
+
+  .solution-text {
+    font-size: 13px;
+    color: #6ee7b7;
+    line-height: 1.5;
+    font-weight: 400;
+  }
+
+  .footer-stats {
+    display: flex;
+    gap: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .stat { }
+  .stat-val { font-size: 22px; font-weight: 800; color: white; line-height: 1; }
+  .stat-lbl { font-size: 9px; color: #475569; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+
+  /* ── RIGHT PANEL ── */
+  .right {
+    padding: 48px 48px 48px 44px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .right-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #475569;
+    margin-bottom: 4px;
+  }
+
+  /* ── FEATURE ROWS ── */
+  .features {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .feat {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    transition: border-color 0.2s;
+  }
+
+  .feat-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .feat-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin-bottom: 3px;
+  }
+
+  .feat-desc {
+    font-size: 11px;
+    color: #64748b;
+    line-height: 1.45;
+  }
+
+  /* ── FLOW ── */
+  .flow-section { }
+
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-top: 10px;
+  }
+
+  .flow-step {
+    flex: 1;
+    background: rgba(37,99,235,0.08);
+    border: 1px solid rgba(37,99,235,0.2);
+    border-radius: 8px;
+    padding: 9px 10px;
+    text-align: center;
+  }
+
+  .flow-n {
+    font-size: 9px;
+    font-weight: 700;
+    color: #3b82f6;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .flow-l {
+    font-size: 11px;
+    font-weight: 600;
+    color: #cbd5e1;
+    margin-top: 2px;
+  }
+
+  .flow-arr {
+    color: #1d4ed8;
+    font-size: 14px;
+    padding: 0 4px;
+    flex-shrink: 0;
+  }
+
+  /* ── STACK ── */
+  .stack-section { }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .chip {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 5px;
+    padding: 4px 10px;
+    font-size: 10px;
+    font-weight: 500;
+    color: #94a3b8;
+  }
+
+  .chip.blue { background: rgba(37,99,235,0.1); border-color: rgba(37,99,235,0.25); color: #93c5fd; }
+  .chip.purple { background: rgba(124,58,237,0.1); border-color: rgba(124,58,237,0.25); color: #c4b5fd; }
+  .chip.green { background: rgba(5,150,105,0.1); border-color: rgba(5,150,105,0.25); color: #6ee7b7; }
+  .chip.amber { background: rgba(217,119,6,0.1); border-color: rgba(217,119,6,0.25); color: #fcd34d; }
+
+  /* ── SCORING VISUAL ── */
+  .score-section { }
+
+  .score-bars {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    align-items: flex-end;
+    height: 56px;
+  }
+
+  .score-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+  }
+
+  .score-bar {
+    width: 100%;
+    border-radius: 4px 4px 0 0;
+  }
+
+  .score-col-label {
+    font-size: 9px;
+    color: #475569;
+    text-align: center;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  @media print {
+    html, body { width: 297mm; height: 167mm; }
+    .slide { width: 100%; height: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="slide">
+  <div class="bg-grid"></div>
+  <div class="bg-glow-1"></div>
+  <div class="bg-glow-2"></div>
+
+  <!-- ── LEFT PANEL ── -->
+  <div class="left">
+    <div class="logo-area">
+      <div class="logo-badge">
+        <div class="logo-dot"></div>
+        <span class="logo-badge-text">AI Infrastructure</span>
+      </div>
+      <div class="logo">Agent<span>Test</span></div>
+      <p class="tagline">Universal AI Agent Testing Framework — Test any agent, verify every decision.</p>
+      <div class="divider"></div>
+
+      <div class="problem">
+        <div class="problem-label">⚡ The Problem</div>
+        <div class="problem-text">AI agents are deployed without systematic testing. No one knows if they use the right tools, stay on-topic, or hallucinate.</div>
+      </div>
+
+      <div style="height: 12px;"></div>
+
+      <div class="solution">
+        <div class="solution-label">✅ Our Solution</div>
+        <div class="solution-text">A no-code testing platform. Point it at any AI agent, define what "correct" looks like, and get scored results in real-time.</div>
+      </div>
+    </div>
+
+    <div class="footer-stats">
+      <div class="stat"><div class="stat-val">6</div><div class="stat-lbl">Assert Types</div></div>
+      <div class="stat"><div class="stat-val">5</div><div class="stat-lbl">LLM Judges</div></div>
+      <div class="stat"><div class="stat-val">0</div><div class="stat-lbl">Code Required</div></div>
+    </div>
+  </div>
+
+  <!-- ── RIGHT PANEL ── -->
+  <div class="right">
+
+    <!-- Features -->
+    <div>
+      <div class="right-title">Core Capabilities</div>
+      <div class="features">
+        <div class="feat">
+          <div class="feat-icon">🧪</div>
+          <div>
+            <div class="feat-title">Test Suites & Cases</div>
+            <div class="feat-desc">Organize tests per agent. Define prompts, expected tools, golden responses, and assertions.</div>
+          </div>
+        </div>
+        <div class="feat">
+          <div class="feat-icon">⚡</div>
+          <div>
+            <div class="feat-title">Live Streaming Feed</div>
+            <div class="feat-desc">Real-time SSE stream shows every test step — trace, assertions, score — as it happens.</div>
+          </div>
+        </div>
+        <div class="feat">
+          <div class="feat-icon">🧠</div>
+          <div>
+            <div class="feat-title">LLM-as-a-Judge Scoring</div>
+            <div class="feat-desc">Groq-powered semantic similarity scoring (0–100) with hallucination detection.</div>
+          </div>
+        </div>
+        <div class="feat">
+          <div class="feat-icon">📊</div>
+          <div>
+            <div class="feat-title">Agent Benchmarking</div>
+            <div class="feat-desc">Compare two agents head-to-head: Accuracy, Semantic Quality, Efficiency, Speed.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flow -->
+    <div class="flow-section">
+      <div class="right-title">How It Works</div>
+      <div class="flow">
+        <div class="flow-step"><div class="flow-n">1</div><div class="flow-l">Create Suite</div></div>
+        <div class="flow-arr">→</div>
+        <div class="flow-step"><div class="flow-n">2</div><div class="flow-l">Add Test Cases</div></div>
+        <div class="flow-arr">→</div>
+        <div class="flow-step"><div class="flow-n">3</div><div class="flow-l">Run</div></div>
+        <div class="flow-arr">→</div>
+        <div class="flow-step"><div class="flow-n">4</div><div class="flow-l">Live Feed</div></div>
+        <div class="flow-arr">→</div>
+        <div class="flow-step"><div class="flow-n">5</div><div class="flow-l">Full Report</div></div>
+      </div>
+    </div>
+
+    <!-- Stack + Scoring side-by-side -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+
+      <div class="stack-section">
+        <div class="right-title">Built With</div>
+        <div class="chips" style="margin-top: 10px;">
+          <span class="chip blue">Next.js 15</span>
+          <span class="chip blue">TypeScript</span>
+          <span class="chip green">Neon PostgreSQL</span>
+          <span class="chip green">Drizzle ORM</span>
+          <span class="chip purple">Groq AI</span>
+          <span class="chip purple">Llama 3.3 70B</span>
+          <span class="chip amber">Vercel</span>
+          <span class="chip">shadcn/ui</span>
+          <span class="chip">Tailwind v4</span>
+          <span class="chip">SSE Streaming</span>
+        </div>
+      </div>
+
+      <div class="score-section">
+        <div class="right-title">Semantic Score Bands</div>
+        <div class="score-bars">
+          <div class="score-col">
+            <div class="score-bar" style="height: 44px; background: linear-gradient(180deg, #059669, #34d399);"></div>
+            <div class="score-col-label">90–100<br/>Perfect</div>
+          </div>
+          <div class="score-col">
+            <div class="score-bar" style="height: 34px; background: linear-gradient(180deg, #2563eb, #60a5fa);"></div>
+            <div class="score-col-label">70–89<br/>Good</div>
+          </div>
+          <div class="score-col">
+            <div class="score-bar" style="height: 24px; background: linear-gradient(180deg, #d97706, #fbbf24);"></div>
+            <div class="score-col-label">50–69<br/>Partial</div>
+          </div>
+          <div class="score-col">
+            <div class="score-bar" style="height: 14px; background: linear-gradient(180deg, #dc2626, #f87171);"></div>
+            <div class="score-col-label">0–49<br/>Fail</div>
+          </div>
+        </div>
+        <div style="font-size: 9px; color: #334155; margin-top: 6px;">Pass threshold: ≥ 50 · Hallucination → auto-fail</div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

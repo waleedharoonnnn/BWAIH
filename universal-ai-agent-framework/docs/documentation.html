@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AgentTest — Complete Documentation</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue: #2563eb;
+    --blue-light: #eff6ff;
+    --blue-mid: #bfdbfe;
+    --green: #059669;
+    --green-light: #ecfdf5;
+    --amber: #d97706;
+    --amber-light: #fffbeb;
+    --red: #dc2626;
+    --red-light: #fef2f2;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    --purple: #7c3aed;
+    --purple-light: #f5f3ff;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--gray-800);
+    background: white;
+    line-height: 1.6;
+    font-size: 14px;
+  }
+
+  /* ── COVER PAGE ── */
+  .cover {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 60px 40px;
+    page-break-after: always;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cover::before {
+    content: '';
+    position: absolute;
+    top: -100px; left: -100px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(37,99,235,0.3) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  .cover::after {
+    content: '';
+    position: absolute;
+    bottom: -80px; right: -80px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(124,58,237,0.25) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  .cover-badge {
+    display: inline-block;
+    background: rgba(37,99,235,0.2);
+    border: 1px solid rgba(37,99,235,0.4);
+    color: #93c5fd;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 6px 18px;
+    border-radius: 999px;
+    margin-bottom: 28px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .cover-title {
+    font-size: 52px;
+    font-weight: 800;
+    color: white;
+    line-height: 1.15;
+    margin-bottom: 8px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .cover-title span {
+    background: linear-gradient(135deg, #60a5fa, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .cover-subtitle {
+    font-size: 20px;
+    color: #94a3b8;
+    font-weight: 400;
+    max-width: 540px;
+    margin: 0 auto 40px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .cover-divider {
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, #2563eb, #7c3aed);
+    border-radius: 2px;
+    margin: 0 auto 40px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .cover-meta {
+    display: flex;
+    gap: 32px;
+    justify-content: center;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 1;
+  }
+
+  .cover-meta-item {
+    text-align: center;
+  }
+
+  .cover-meta-item .val {
+    display: block;
+    font-size: 28px;
+    font-weight: 700;
+    color: white;
+  }
+
+  .cover-meta-item .lbl {
+    font-size: 11px;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .cover-footer {
+    position: absolute;
+    bottom: 32px;
+    left: 0; right: 0;
+    text-align: center;
+    color: #475569;
+    font-size: 12px;
+    z-index: 1;
+  }
+
+  /* ── PAGE LAYOUT ── */
+  .page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 56px 60px;
+  }
+
+  @media print {
+    .cover { min-height: 100vh; }
+    .page { padding: 48px 56px; }
+    section { page-break-inside: avoid; }
+    h2 { page-break-after: avoid; }
+    .page-break { page-break-before: always; }
+  }
+
+  /* ── TOC ── */
+  .toc-page {
+    padding: 56px 60px;
+    max-width: 800px;
+    margin: 0 auto;
+    page-break-after: always;
+  }
+
+  .toc-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: 32px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--gray-200);
+  }
+
+  .toc-item {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--gray-100);
+    color: var(--gray-700);
+    font-size: 14px;
+  }
+
+  .toc-num {
+    font-weight: 700;
+    color: var(--blue);
+    min-width: 24px;
+    font-size: 13px;
+  }
+
+  .toc-label { flex: 1; }
+
+  .toc-dots {
+    flex: 1;
+    border-bottom: 1px dotted var(--gray-300);
+    margin: 0 8px 3px;
+    min-width: 40px;
+  }
+
+  .toc-page-num {
+    font-weight: 600;
+    color: var(--gray-500);
+    font-size: 13px;
+  }
+
+  /* ── SECTION HEADINGS ── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--gray-200);
+  }
+
+  .section-num {
+    width: 36px; height: 36px;
+    background: var(--blue);
+    color: white;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--gray-900);
+  }
+
+  h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--gray-800);
+    margin: 24px 0 10px;
+  }
+
+  h4 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gray-700);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 16px 0 6px;
+  }
+
+  p {
+    color: var(--gray-600);
+    margin-bottom: 12px;
+    line-height: 1.7;
+  }
+
+  section {
+    margin-bottom: 52px;
+  }
+
+  /* ── CALLOUT BOXES ── */
+  .callout {
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .callout-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+
+  .callout.info { background: var(--blue-light); border-left: 4px solid var(--blue); }
+  .callout.success { background: var(--green-light); border-left: 4px solid var(--green); }
+  .callout.warning { background: var(--amber-light); border-left: 4px solid var(--amber); }
+  .callout.tip { background: var(--purple-light); border-left: 4px solid var(--purple); }
+
+  .callout-title { font-weight: 600; margin-bottom: 2px; font-size: 13px; }
+  .callout.info .callout-title { color: var(--blue); }
+  .callout.success .callout-title { color: var(--green); }
+  .callout.warning .callout-title { color: var(--amber); }
+  .callout.tip .callout-title { color: var(--purple); }
+
+  .callout p { color: var(--gray-700); margin: 0; font-size: 13px; line-height: 1.6; }
+
+  /* ── FEATURE GRID ── */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin: 20px 0;
+  }
+
+  .feature-card {
+    border: 1px solid var(--gray-200);
+    border-radius: 10px;
+    padding: 18px;
+    background: var(--gray-50);
+  }
+
+  .feature-card-icon {
+    font-size: 22px;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .feature-card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--gray-800);
+    margin-bottom: 4px;
+  }
+
+  .feature-card-desc {
+    font-size: 12px;
+    color: var(--gray-500);
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  /* ── CODE BLOCKS ── */
+  pre, code {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  }
+
+  code {
+    background: var(--gray-100);
+    color: var(--blue);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+
+  pre {
+    background: var(--gray-900);
+    color: #e2e8f0;
+    padding: 18px 20px;
+    border-radius: 10px;
+    overflow-x: auto;
+    font-size: 12px;
+    line-height: 1.7;
+    margin: 16px 0;
+  }
+
+  pre code {
+    background: none;
+    color: inherit;
+    padding: 0;
+    font-size: inherit;
+  }
+
+  .code-comment { color: #64748b; }
+  .code-key { color: #93c5fd; }
+  .code-string { color: #86efac; }
+  .code-num { color: #fca5a5; }
+
+  /* ── TABLES ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 13px;
+  }
+
+  thead th {
+    background: var(--gray-800);
+    color: white;
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.03em;
+  }
+
+  thead th:first-child { border-radius: 8px 0 0 0; }
+  thead th:last-child { border-radius: 0 8px 0 0; }
+
+  tbody tr:nth-child(even) { background: var(--gray-50); }
+
+  tbody td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--gray-200);
+    color: var(--gray-700);
+    vertical-align: top;
+  }
+
+  tbody td:first-child { font-weight: 500; color: var(--gray-800); }
+
+  /* ── FLOW DIAGRAM ── */
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: 20px 0;
+    flex-wrap: wrap;
+  }
+
+  .flow-step {
+    background: var(--blue-light);
+    border: 1.5px solid var(--blue-mid);
+    border-radius: 8px;
+    padding: 10px 16px;
+    text-align: center;
+    flex: 1;
+    min-width: 100px;
+  }
+
+  .flow-step-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--blue);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .flow-step-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gray-800);
+    margin-top: 2px;
+  }
+
+  .flow-arrow {
+    font-size: 18px;
+    color: var(--blue);
+    padding: 0 4px;
+    flex-shrink: 0;
+  }
+
+  /* ── BADGE ── */
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .badge-blue { background: var(--blue-light); color: var(--blue); border: 1px solid var(--blue-mid); }
+  .badge-green { background: var(--green-light); color: var(--green); border: 1px solid #a7f3d0; }
+  .badge-amber { background: var(--amber-light); color: var(--amber); border: 1px solid #fde68a; }
+  .badge-purple { background: var(--purple-light); color: var(--purple); border: 1px solid #ddd6fe; }
+
+  /* ── STACK LIST ── */
+  .stack-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0;
+  }
+
+  .stack-chip {
+    background: var(--gray-100);
+    border: 1px solid var(--gray-200);
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--gray-700);
+  }
+
+  /* ── SCORE VISUAL ── */
+  .score-range {
+    display: flex;
+    gap: 6px;
+    margin: 12px 0;
+    flex-wrap: wrap;
+  }
+
+  .score-band {
+    flex: 1;
+    min-width: 80px;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+  }
+
+  .score-band .score-val { font-size: 15px; font-weight: 700; }
+  .score-band .score-lbl { font-size: 11px; margin-top: 2px; }
+
+  .band-green { background: var(--green-light); color: var(--green); }
+  .band-blue { background: var(--blue-light); color: var(--blue); }
+  .band-amber { background: var(--amber-light); color: var(--amber); }
+  .band-red { background: var(--red-light); color: var(--red); }
+
+  /* ── PAGE NUMBERS ── */
+  .page-num {
+    text-align: right;
+    font-size: 11px;
+    color: var(--gray-400);
+    margin-bottom: 32px;
+    font-weight: 500;
+  }
+
+  ul {
+    padding-left: 20px;
+    margin: 8px 0 12px;
+  }
+
+  li {
+    color: var(--gray-600);
+    margin-bottom: 5px;
+    line-height: 1.6;
+    font-size: 13px;
+  }
+
+  li strong { color: var(--gray-800); }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin: 16px 0;
+  }
+
+  .arch-box {
+    border: 1.5px solid var(--gray-200);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .arch-box-header {
+    background: var(--gray-800);
+    color: white;
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .arch-box-body {
+    padding: 12px 14px;
+    background: var(--gray-50);
+  }
+
+  .arch-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--gray-100);
+    font-size: 12px;
+    color: var(--gray-700);
+  }
+
+  .arch-item:last-child { border-bottom: none; }
+  .arch-item-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--blue);
+    flex-shrink: 0;
+  }
+
+  hr.divider {
+    border: none;
+    border-top: 1px solid var(--gray-200);
+    margin: 28px 0;
+  }
+
+  .assertion-card {
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    overflow: hidden;
+  }
+
+  .assertion-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 14px;
+    background: var(--gray-50);
+  }
+
+  .assertion-type {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--blue);
+    background: var(--blue-light);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  .assertion-desc {
+    font-size: 12px;
+    color: var(--gray-600);
+  }
+
+  .assertion-body {
+    padding: 8px 14px;
+    font-size: 12px;
+    color: var(--gray-600);
+    border-top: 1px solid var(--gray-100);
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════
+     COVER PAGE
+═══════════════════════════════════════════════════════ -->
+<div class="cover">
+  <div class="cover-badge">Technical Documentation · v1.0</div>
+  <h1 class="cover-title">Agent<span>Test</span></h1>
+  <p class="cover-subtitle">Universal AI Agent Testing Framework — Build, Run & Score AI Agent Test Suites</p>
+  <div class="cover-divider"></div>
+  <div class="cover-meta">
+    <div class="cover-meta-item">
+      <span class="val">6</span>
+      <span class="lbl">Core Features</span>
+    </div>
+    <div class="cover-meta-item">
+      <span class="val">14+</span>
+      <span class="lbl">Pages & Components</span>
+    </div>
+    <div class="cover-meta-item">
+      <span class="val">6</span>
+      <span class="lbl">Assertion Types</span>
+    </div>
+    <div class="cover-meta-item">
+      <span class="val">5</span>
+      <span class="lbl">Groq LLM Models</span>
+    </div>
+  </div>
+  <div class="cover-footer">AgentTest · Built with Next.js 15, Neon PostgreSQL, Groq AI · 2026</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     TABLE OF CONTENTS
+═══════════════════════════════════════════════════════ -->
+<div class="toc-page">
+  <h2 class="toc-title">Table of Contents</h2>
+
+  <div class="toc-item"><span class="toc-num">1</span><span class="toc-label">What is AgentTest?</span><span class="toc-dots"></span><span class="toc-page-num">3</span></div>
+  <div class="toc-item"><span class="toc-num">2</span><span class="toc-label">The Problem We Solve</span><span class="toc-dots"></span><span class="toc-page-num">3</span></div>
+  <div class="toc-item"><span class="toc-num">3</span><span class="toc-label">How It Works — User Journey</span><span class="toc-dots"></span><span class="toc-page-num">4</span></div>
+  <div class="toc-item"><span class="toc-num">4</span><span class="toc-label">Core Features</span><span class="toc-dots"></span><span class="toc-page-num">5</span></div>
+  <div class="toc-item"><span class="toc-num">5</span><span class="toc-label">Assertion Engine</span><span class="toc-dots"></span><span class="toc-page-num">6</span></div>
+  <div class="toc-item"><span class="toc-num">6</span><span class="toc-label">LLM-as-a-Judge Semantic Scoring</span><span class="toc-dots"></span><span class="toc-page-num">7</span></div>
+  <div class="toc-item"><span class="toc-num">7</span><span class="toc-label">Agent Comparison (Benchmarking)</span><span class="toc-dots"></span><span class="toc-page-num">8</span></div>
+  <div class="toc-item"><span class="toc-num">8</span><span class="toc-label">Code Checker</span><span class="toc-dots"></span><span class="toc-page-num">9</span></div>
+  <div class="toc-item"><span class="toc-num">9</span><span class="toc-label">Technical Architecture</span><span class="toc-dots"></span><span class="toc-page-num">9</span></div>
+  <div class="toc-item"><span class="toc-num">10</span><span class="toc-label">Database Schema</span><span class="toc-dots"></span><span class="toc-page-num">11</span></div>
+  <div class="toc-item"><span class="toc-num">11</span><span class="toc-label">API Reference</span><span class="toc-dots"></span><span class="toc-page-num">12</span></div>
+  <div class="toc-item"><span class="toc-num">12</span><span class="toc-label">Pages & UI Components</span><span class="toc-dots"></span><span class="toc-page-num">13</span></div>
+  <div class="toc-item"><span class="toc-num">13</span><span class="toc-label">Deployment Guide</span><span class="toc-dots"></span><span class="toc-page-num">14</span></div>
+  <div class="toc-item"><span class="toc-num">14</span><span class="toc-label">Mock Agent (Built-in)</span><span class="toc-dots"></span><span class="toc-page-num">15</span></div>
+  <div class="toc-item"><span class="toc-num">15</span><span class="toc-label">Technology Stack</span><span class="toc-dots"></span><span class="toc-page-num">15</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     CONTENT PAGES
+═══════════════════════════════════════════════════════ -->
+<div class="page">
+
+  <!-- 1. WHAT IS AGENTTEST -->
+  <section>
+    <div class="section-header">
+      <div class="section-num">1</div>
+      <h2>What is AgentTest?</h2>
+    </div>
+
+    <p>AgentTest is a <strong>web-based framework for testing AI agents</strong>. Think of it like a testing lab — you point it at any AI agent (a chatbot, a tool-using LLM, a RAG pipeline), give it questions to ask, and it tells you whether the agent responded correctly, used the right tools, and gave a semantically accurate answer.</p>
+
+    <p>Just like software engineers write unit tests for their code, AI engineers need a way to test their agents systematically. AgentTest provides that infrastructure — without writing a single line of test code.</p>
+
+    <div class="callout info">
+      <span class="callout-icon">💡</span>
+      <div>
+        <div class="callout-title">In simple terms</div>
+        <p>You tell AgentTest what your AI agent <em>should</em> do. AgentTest calls your agent, observes what it <em>actually</em> does, and scores it — automatically.</p>
+      </div>
+    </div>
+
+    <div class="feature-grid">
+      <div class="feature-card">
+        <span class="feature-card-icon">🔬</span>
+        <div class="feature-card-title">Test any AI Agent</div>
+        <p class="feature-card-desc">Works with any agent that accepts a POST request. No SDK required.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-card-icon">⚡</span>
+        <div class="feature-card-title">Real-time Results</div>
+        <p class="feature-card-desc">Live streaming feed shows each test as it runs — step by step.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-card-icon">🧠</span>
+        <div class="feature-card-title">AI-Powered Scoring</div>
+        <p class="feature-card-desc">Uses Groq LLMs to judge whether responses are semantically correct.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-card-icon">📊</span>
+        <div class="feature-card-title">Rich Reports</div>
+        <p class="feature-card-desc">Pass rates, semantic scores, tool traces, and assertion breakdowns.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. THE PROBLEM -->
+  <section>
+    <div class="section-header">
+      <div class="section-num">2</div>
+      <h2>The Problem We Solve</h2>
+    </div>
+
+    <p>AI agents are being deployed faster than ever, but there is no standardized way to verify that they behave correctly. Teams face three specific challenges:</p>
+
+    <h3>Challenge 1 — Behaviour is Non-Deterministic</h3>
+    <p>Unlike traditional software, AI agents don't always produce the same output for the same input. You can't just compare strings. A correct answer can be worded many different ways.</p>
+
+    <h3>Challenge 2 — Tool Use is Hard to Verify</h3>
+    <p>Many modern agents use tools (search, APIs, databases). Verifying that an agent called the right tools, in the right order, with the right parameters requires dedicated infrastructure.</p>
+
+    <h3>Challenge 3 — No Visibility into Reasoning</h3>
+    <p>When an agent fails, it's hard to know why. Did it hallucinate? Did it skip a tool? Did it misunderstand the prompt? Without execution traces, debugging is guesswork.</p>
+
+    <div class="callout success">
+      <span class="callout-icon">✅</span>
+      <div>
+        <div class="callout-title">AgentTest solves all three</div>
+        <p>Semantic similarity scoring handles non-determinism. The assertion engine verifies tool use. Execution traces give full visibility into every agent decision.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. USER JOURNEY -->
+  <section class="page-break">
+    <div class="section-header">
+      <div class="section-num">3</div>
+      <h2>How It Works — User Journey</h2>
+    </div>
+
+    <p>Using AgentTest follows a simple 5-step workflow:</p>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-step-num">Step 1</div>
+        <div class="flow-step-label">Create Suite</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="flow-step-num">Step 2</div>
+        <div class="flow-step-label">Add Test Cases</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="flow-step-num">Step 3</div>
+        <div class="flow-step-label">Run Suite</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="flow-step-num">Step 4</div>
+        <div class="flow-step-label">Watch Live Feed</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="flow-step-num">Step 5</div>
+        <div class="flow-step-label">Read Report</div>
+      </div>
+    </div>
+
+    <h3>Step 1 — Create a Test Suite</h3>
+    <p>A <strong>Test Suite</strong> is a collection of test cases that all test the same AI agent. You configure it with:</p>
+    <ul>
+      <li><strong>Agent URL</strong> — the HTTP endpoint of your AI agent</li>
+      <li><strong>Auth Key</strong> — optional Bearer token if your agent is authenticated</li>
+      <li><strong>Judge Model</strong> — which Groq LLM to use for semantic scoring</li>
+    </ul>
+
+    <h3>Step 2 — Add Test Cases</h3>
+    <p>Each <strong>Test Case</strong> defines one specific scenario to test. For each case you can specify:</p>
+    <ul>
+      <li><strong>Trigger Prompt</strong> — the exact prompt sent to your agent</li>
+      <li><strong>Expected Tool Sequence</strong> — the tools your agent should call, in order</li>
+      <li><strong>Golden Response</strong> — the ideal expected response (for semantic scoring)</li>
+      <li><strong>Assertions</strong> — specific rules that must pass (e.g. tool was called, step limit)</li>
+    </ul>
+
+    <h3>Step 3 — Run the Suite</h3>
+    <p>Click "Run Suite". AgentTest creates a run record in the database and starts streaming test execution in real time.</p>
+
+    <h3>Step 4 — Watch the Live Feed</h3>
+    <p>A Server-Sent Events (SSE) stream pushes updates to your browser as each test runs. You see each test's status, tool trace, assertions, and semantic score appear live.</p>
+
+    <h3>Step 5 — Read the Full Report</h3>
+    <p>After completion, a full report shows every test result with tool sequence diffs, assertion breakdowns, and a golden-vs-actual response comparison.</p>
+  </section>
+
+  <!-- 4. CORE FEATURES -->
+  <section>
+    <div class="section-header">
+      <div class="section-num">4</div>
+      <h2>Core Features</h2>
+    </div>
+
+    <h3>Test Suites & Test Cases</h3>
+    <p>The primary organizational unit is the <strong>Test Suite</strong>. A suite maps to one AI agent and contains multiple <strong>Test Cases</strong>. Each test case is a self-contained scenario with its own prompt, expected behavior, and pass/fail criteria.</p>
+
+    <h3>Live Run Streaming</h3>
+    <p>Test execution is streamed in real time using <strong>Server-Sent Events (SSE)</strong>. The browser receives events as they happen — no polling required. Each event corresponds to a step: agent called, trace captured, assertions evaluated, semantic scored, test completed.</p>
+
+    <h3>Execution Trace Viewer</h3>
+    <p>Every agent call produces a detailed <strong>execution trace</strong>: an ordered list of tools the agent called, with the parameters passed to each tool and the result returned. This trace is stored in the database and visualized in the report.</p>
+
+    <h3>Dark Mode + Light Mode</h3>
+    <p>The entire UI supports system-preference dark/light mode switching with a 3-state toggle (Light → Dark → System) in the sidebar. All colors use CSS custom properties, so there are no hardcoded colors anywhere in the interface.</p>
+
+    <h3>Dashboard with Charts</h3>
+    <p>The dashboard shows aggregate stats (total suites, test cases, runs, average pass rate) with two live charts: a <strong>pass rate bar chart</strong> across the last 8 runs, and a <strong>trend area chart</strong> showing pass rate over time.</p>
+
+    <h3>Agent Comparison</h3>
+    <p>The <strong>Compare</strong> page lets you select two completed runs and benchmark them head-to-head across 5 dimensions: Accuracy, Semantic Quality, Token Efficiency, Step Speed, and Overall Score.</p>
+  </section>
+
+  <!-- 5. ASSERTION ENGINE -->
+  <section class="page-break">
+    <div class="section-header">
+      <div class="section-num">5</div>
+      <h2>Assertion Engine</h2>
+    </div>
+
+    <p>Assertions are <strong>deterministic rules</strong> that must pass for a test case to succeed. They check concrete, measurable properties of the agent's behavior — independent of AI scoring.</p>
+
+    <p>There are <strong>6 assertion types</strong>:</p>
+
+    <div class="assertion-card">
+      <div class="assertion-header">
+        <span class="assertion-type">tool_called</span>
+        <span class="assertion-desc">Verifies that a specific tool was called at any point</span>
+      </div>
+      <div class="assertion-body">
+        <strong>Value:</strong> the tool name, e.g. <code>search_kb</code><br/>
+        <strong>Example:</strong> Assert that the agent called <code>classify_intent</code> at least once.
+      </div>
+    </div>
+
+    <div class="assertion-card">
+      <div class="assertion-header">
+        <span class="assertion-type">tool_order</span>
+        <span class="assertion-desc">Verifies that tools were called in a specific sequence</span>
+      </div>
+      <div class="assertion-body">
+        <strong>Value:</strong> comma-separated tool names in expected order, e.g. <code>classify_intent, generate_response</code><br/>
+        <strong>Example:</strong> The agent must classify intent before generating a response.
+      </div>
+    </div>
+
+    <div class="assertion-card">
+      <div class="assertion-header">
+        <span class="assertion-type">step_limit</span>
+        <span class="assertion-desc">Verifies the agent completed within a maximum number of steps</span>
+      </div>
+      <div class="assertion-body">
+        <strong>Value:</strong> a number, e.g. <code>3</code><br/>
+        <strong>Example:</strong> The agent must complete its task in 3 tool calls or fewer.
+      </div>
+    </div>
+
+    <div class="assertion-card">
+      <div class="assertion-header">
+        <span class="assertion-type">param_type</span>
+        <span class="assertion-desc">Verifies a tool parameter is of the correct data type</span>
+      </div>
+      <div class="assertion-body">
+        <strong>Value:</strong> <code>tool_name:param_name:type</code> — e.g. <code>search_kb:query:string</code><br/>
+        <strong>Example:</strong> The <code>query</code> parameter passed to <code>search_kb</code> must be a string.
+      </div>
+    </div>
+
+    <div class="assertion-card">
+      <div class="assertion-header">
+        <span class="assertion-type">output_contains</span>
+        <span class="assertion-desc">Verifies the agent's final response contains a specific string</span>
+      </div>
+      <div class="assertion-body">
+        <strong>Value:</strong> the expected string, e.g. <code>escalated</code><br/>
+        <strong>Example:</strong> The response must contain the word "escalated" for a ticket escalation test.
+      </div>
+    </div>
+
+    <div class="assertion-card">
+      <div class="assertion-header">
+        <span class="assertion-type">output_not_contains</span>
+        <span class="assertion-desc">Verifies the agent's final response does NOT contain a specific string</span>
+      </div>
+      <div class="assertion-body">
+        <strong>Value:</strong> the forbidden string, e.g. <code>error</code><br/>
+        <strong>Example:</strong> The response must not contain the word "error" in a success scenario.
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <span class="callout-icon">🔧</span>
+      <div>
+        <div class="callout-title">Multiple assertions per test case</div>
+        <p>Each test case can have any number of assertions. All must pass. Each assertion can optionally have a description explaining what it checks, which is displayed in the report.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. SEMANTIC SCORING -->
+  <section>
+    <div class="section-header">
+      <div class="section-num">6</div>
+      <h2>LLM-as-a-Judge Semantic Scoring</h2>
+    </div>
+
+    <p>Beyond deterministic assertions, AgentTest uses a <strong>Groq-powered language model as a judge</strong> to score whether the agent's actual response is semantically similar to the expected golden response.</p>
+
+    <h3>How It Works</h3>
+    <p>After the agent responds, AgentTest sends three pieces of information to the judge model:</p>
+    <ul>
+      <li>The <strong>original prompt</strong> (what the user asked)</li>
+      <li>The <strong>golden response</strong> (what the ideal answer looks like)</li>
+      <li>The <strong>actual response</strong> (what the agent actually said)</li>
+    </ul>
+    <p>The judge returns a JSON object with a score (0–100), a one-sentence reasoning, and a hallucination flag.</p>
+
+    <h3>Scoring Rubric</h3>
+    <div class="score-range">
+      <div class="score-band band-green">
+        <div class="score-val">90–100</div>
+        <div class="score-lbl">Near-identical meaning, no hallucinations</div>
+      </div>
+      <div class="score-band band-blue">
+        <div class="score-val">70–89</div>
+        <div class="score-lbl">Most info present, minor omissions</div>
+      </div>
+      <div class="score-band band-amber">
+        <div class="score-val">50–69</div>
+        <div class="score-lbl">Partially correct, some missing info</div>
+      </div>
+      <div class="score-band band-red">
+        <div class="score-val">0–49</div>
+        <div class="score-lbl">Significant misalignment or hallucination</div>
+      </div>
+    </div>
+
+    <h3>Pass Threshold</h3>
+    <p>A test case passes the semantic check if the score is <strong>50 or above</strong>. A score below 50 causes the test to fail with the reason "Semantic score below threshold (50)".</p>
+
+    <h3>Hallucination Detection</h3>
+    <p>The judge is also instructed to flag hallucinations — cases where the agent's response contains specific facts, numbers, names, or claims that are not present in the golden response and not inferable from the prompt. A hallucinated response fails the test immediately.</p>
+
+    <h3>Available Judge Models</h3>
+    <table>
+      <thead>
+        <tr><th>Model</th><th>Speed</th><th>Context</th><th>Best For</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Llama 3.3 70B Versatile</td><td><span class="badge badge-purple">Powerful</span></td><td>128k</td><td>Deep analysis, highest accuracy</td></tr>
+        <tr><td>Llama 3.1 8B Instant</td><td><span class="badge badge-green">Fast</span></td><td>128k</td><td>Quick checks, high volume</td></tr>
+        <tr><td>Llama 3 70B</td><td><span class="badge badge-blue">Balanced</span></td><td>8k</td><td>Strong reasoning, compact</td></tr>
+        <tr><td>Llama 3 8B</td><td><span class="badge badge-green">Fast</span></td><td>8k</td><td>Lightweight, very fast</td></tr>
+        <tr><td>Gemma 2 9B</td><td><span class="badge badge-green">Fast</span></td><td>8k</td><td>Google's efficient model</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout warning">
+      <span class="callout-icon">⚠️</span>
+      <div>
+        <div class="callout-title">Automatic fallback</div>
+        <p>If a previously selected judge model is decommissioned by Groq, AgentTest automatically retries with the default model (Llama 3.3 70B) instead of failing with an error.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. AGENT COMPARISON -->
+  <section class="page-break">
+    <div class="section-header">
+      <div class="section-num">7</div>
+      <h2>Agent Comparison (Benchmarking)</h2>
+    </div>
+
+    <p>The <strong>Compare Agents</strong> page allows you to select any two completed runs and benchmark them against each other across multiple dimensions. This is useful when you want to compare two versions of the same agent, or two completely different agents, on the same set of tests.</p>
+
+    <h3>Benchmark Dimensions</h3>
+    <table>
+      <thead>
+        <tr><th>Dimension</th><th>Weight</th><th>How It's Calculated</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Accuracy</td><td>35%</td><td>Pass rate (% of test cases passed)</td></tr>
+        <tr><td>Semantic Quality</td><td>35%</td><td>Average semantic score across all test cases</td></tr>
+        <tr><td>Token Efficiency</td><td>15%</td><td><code>max(0, 100 − avgTokens ÷ 15)</code></td></tr>
+        <tr><td>Step Speed</td><td>15%</td><td><code>max(0, 100 − avgSteps × 8)</code></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Overall Score Formula</h3>
+    <pre><code>Overall = 0.35 × Accuracy + 0.35 × SemanticQuality + 0.15 × Efficiency + 0.15 × Speed</code></pre>
+
+    <h3>What the Report Shows</h3>
+    <ul>
+      <li><strong>Agent Cards</strong> — side-by-side profile cards for each agent showing suite name, agent URL, pass rate, avg semantic score, token usage, steps, and judge model</li>
+      <li><strong>Winner Badge</strong> — the winning agent gets a highlighted ring border and "Winner" badge</li>
+      <li><strong>Benchmark Bars</strong> — visual score bars for each dimension with a winner indicator</li>
+      <li><strong>Per-Test Breakdown</strong> — a table showing pass/fail, semantic score, and token count for both agents on each shared test case</li>
+    </ul>
+
+    <div class="callout tip">
+      <span class="callout-icon">📈</span>
+      <div>
+        <div class="callout-title">Ties are handled gracefully</div>
+        <p>If two scores are within 2 points of each other on any dimension, it's declared a tie rather than forcing a winner — preventing misleading conclusions from small differences.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. CODE CHECKER -->
+  <section>
+    <div class="section-header">
+      <div class="section-num">8</div>
+      <h2>Code Checker</h2>
+    </div>
+
+    <p>The Code Checker is a built-in tool that lets you submit code (either typed or uploaded as files) and have it analyzed by an AI model for issues, improvements, and best practices.</p>
+
+    <h3>File Upload Features</h3>
+    <ul>
+      <li><strong>Drag and Drop</strong> — drag files from your file manager directly onto the input area</li>
+      <li><strong>Multi-file Support</strong> — upload multiple files at once; each gets its own tab</li>
+      <li><strong>Auto Language Detection</strong> — language is inferred from file extension (<code>.ts</code> → TypeScript, <code>.py</code> → Python, <code>.go</code> → Go, etc.)</li>
+      <li><strong>File Tabs</strong> — switch between uploaded files with named tabs; remove files with ✕</li>
+      <li><strong>Merge All</strong> — analyze all uploaded files together with clear file separators</li>
+    </ul>
+
+    <h3>Supported Languages</h3>
+    <div class="stack-row">
+      <span class="stack-chip">TypeScript</span><span class="stack-chip">JavaScript</span>
+      <span class="stack-chip">Python</span><span class="stack-chip">Go</span>
+      <span class="stack-chip">Rust</span><span class="stack-chip">Java</span>
+      <span class="stack-chip">C / C++</span><span class="stack-chip">C#</span>
+      <span class="stack-chip">Ruby</span><span class="stack-chip">PHP</span>
+      <span class="stack-chip">Swift</span><span class="stack-chip">Kotlin</span>
+    </div>
+  </section>
+
+  <!-- 9. ARCHITECTURE -->
+  <section class="page-break">
+    <div class="section-header">
+      <div class="section-num">9</div>
+      <h2>Technical Architecture</h2>
+    </div>
+
+    <p>AgentTest is a full-stack Next.js application. The frontend and backend are co-located in the same codebase using the App Router.</p>
+
+    <div class="two-col">
+      <div class="arch-box">
+        <div class="arch-box-header">Frontend (Client)</div>
+        <div class="arch-box-body">
+          <div class="arch-item"><div class="arch-item-dot"></div> Next.js 15 App Router</div>
+          <div class="arch-item"><div class="arch-item-dot"></div> React 18 (Server + Client)</div>
+          <div class="arch-item"><div class="arch-item-dot"></div> Tailwind CSS v4</div>
+          <div class="arch-item"><div class="arch-item-dot"></div> shadcn/ui components</div>
+          <div class="arch-item"><div class="arch-item-dot"></div> Recharts (charts)</div>
+          <div class="arch-item"><div class="arch-item-dot"></div> next-themes (dark mode)</div>
+          <div class="arch-item"><div class="arch-item-dot"></div> Sonner (toast notifications)</div>
+          <div class="arch-item"><div class="arch-item-dot"></div> lucide-react (icons)</div>
+        </div>
+      </div>
+      <div class="arch-box">
+        <div class="arch-box-header">Backend (Server)</div>
+        <div class="arch-box-body">
+          <div class="arch-item"><div class="arch-item-dot"></div> Next.js Route Handlers</div>
+          <div class="arch-item"><div class="arch-item-dot"></div> Drizzle ORM</div>
+          <div class="arch-item"><div class="arch-item-dot"></div> Neon Serverless PostgreSQL</div>
+          <div class="arch-item"><div class="arch-item-dot"></div> Groq SDK (LLM judge)</div>
+          <div class="arch-item"><div class="arch-item-dot"></div> Zod (request validation)</div>
+          <div class="arch-item"><div class="arch-item-dot"></div> SSE streaming</div>
+          <div class="arch-item"><div class="arch-item-dot"></div> Node.js runtime</div>
+        </div>
+      </div>
+    </div>
+
+    <h3>Data Flow — How a Test Run Works</h3>
+
+    <p>The following sequence describes exactly what happens from the moment a user clicks "Run Suite" to when the final report is ready:</p>
+
+    <table>
+      <thead>
+        <tr><th>#</th><th>Event</th><th>Where It Happens</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>User clicks "Run Suite" → POST /api/runs</td><td>Browser → Server</td></tr>
+        <tr><td>2</td><td>Server creates a <code>testRuns</code> record with status "running"</td><td>Server → Neon DB</td></tr>
+        <tr><td>3</td><td>Browser opens an EventSource to <code>/api/stream/{runId}</code></td><td>Browser → Server (SSE)</td></tr>
+        <tr><td>4</td><td>For each test case, server POSTs to the agent URL with the trigger prompt</td><td>Server → Agent</td></tr>
+        <tr><td>5</td><td>Agent responds with trace, response text, token count, step count</td><td>Agent → Server</td></tr>
+        <tr><td>6</td><td>Server emits <code>trace_captured</code> SSE event</td><td>Server → Browser</td></tr>
+        <tr><td>7</td><td>Server evaluates all assertions, emits <code>assertions_evaluated</code></td><td>Server → Browser</td></tr>
+        <tr><td>8</td><td>If golden response exists, server calls Groq judge API</td><td>Server → Groq</td></tr>
+        <tr><td>9</td><td>Server emits <code>semantic_scored</code> with score + reasoning</td><td>Server → Browser</td></tr>
+        <tr><td>10</td><td>Server writes final result to <code>testResults</code> table</td><td>Server → Neon DB</td></tr>
+        <tr><td>11</td><td>Server emits <code>test_completed</code> with pass/fail status</td><td>Server → Browser</td></tr>
+        <tr><td>12</td><td>After all tests, server emits <code>run_completed</code> and closes SSE</td><td>Server → Browser</td></tr>
+        <tr><td>13</td><td>Browser shows "View Full Report" button</td><td>Browser</td></tr>
+      </tbody>
+    </table>
+
+    <h3>SSE Stream Architecture</h3>
+    <p>The streaming is implemented using the Web Streams API (<code>ReadableStream</code>). A <code>closed</code> flag guards against writing to a stream after the client has disconnected — preventing the <code>ERR_INVALID_STATE</code> crash that would otherwise occur if a user navigates away mid-run.</p>
+  </section>
+
+  <!-- 10. DATABASE SCHEMA -->
+  <section>
+    <div class="section-header">
+      <div class="section-num">10</div>
+      <h2>Database Schema</h2>
+    </div>
+
+    <p>The database uses four tables. All are hosted on <strong>Neon serverless PostgreSQL</strong> and managed with Drizzle ORM.</p>
+
+    <h3>test_suites</h3>
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>id</td><td>uuid (PK)</td><td>Auto-generated unique identifier</td></tr>
+        <tr><td>name</td><td>text</td><td>Suite display name</td></tr>
+        <tr><td>description</td><td>text</td><td>Optional description</td></tr>
+        <tr><td>agent_url</td><td>text</td><td>HTTP endpoint of the AI agent under test</td></tr>
+        <tr><td>agent_auth_key</td><td>text</td><td>Optional Bearer token for authenticated agents</td></tr>
+        <tr><td>judge_model</td><td>text</td><td>Groq model ID to use as the LLM judge</td></tr>
+        <tr><td>created_at</td><td>timestamp</td><td>Creation time</td></tr>
+      </tbody>
+    </table>
+
+    <h3>test_cases</h3>
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>id</td><td>uuid (PK)</td><td>Auto-generated unique identifier</td></tr>
+        <tr><td>suite_id</td><td>uuid (FK)</td><td>References test_suites.id (cascade delete)</td></tr>
+        <tr><td>name</td><td>text</td><td>Test case display name</td></tr>
+        <tr><td>trigger_prompt</td><td>text</td><td>Prompt sent to the agent</td></tr>
+        <tr><td>expected_tool_sequence</td><td>jsonb</td><td>Ordered array of expected tool names</td></tr>
+        <tr><td>golden_response</td><td>text</td><td>Ideal expected response for semantic comparison</td></tr>
+        <tr><td>assertions</td><td>jsonb</td><td>Array of Assertion objects</td></tr>
+        <tr><td>created_at</td><td>timestamp</td><td>Creation time</td></tr>
+      </tbody>
+    </table>
+
+    <h3>test_runs</h3>
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>id</td><td>uuid (PK)</td><td>Auto-generated unique identifier</td></tr>
+        <tr><td>suite_id</td><td>uuid (FK)</td><td>References test_suites.id</td></tr>
+        <tr><td>status</td><td>text</td><td>"running" | "completed" | "failed"</td></tr>
+        <tr><td>pass_count</td><td>integer</td><td>Number of test cases that passed</td></tr>
+        <tr><td>fail_count</td><td>integer</td><td>Number of test cases that failed</td></tr>
+        <tr><td>started_at</td><td>timestamp</td><td>When the run was initiated</td></tr>
+        <tr><td>completed_at</td><td>timestamp</td><td>When the run finished</td></tr>
+      </tbody>
+    </table>
+
+    <h3>test_results</h3>
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>id</td><td>uuid (PK)</td><td>Auto-generated unique identifier</td></tr>
+        <tr><td>run_id</td><td>uuid (FK)</td><td>References test_runs.id (cascade delete)</td></tr>
+        <tr><td>test_case_id</td><td>uuid (FK)</td><td>References test_cases.id</td></tr>
+        <tr><td>passed</td><td>boolean</td><td>Overall pass/fail for this result</td></tr>
+        <tr><td>actual_tool_sequence</td><td>jsonb</td><td>Tools the agent actually called</td></tr>
+        <tr><td>token_usage</td><td>integer</td><td>Tokens consumed by the agent</td></tr>
+        <tr><td>step_count</td><td>integer</td><td>Number of tool calls made</td></tr>
+        <tr><td>raw_response</td><td>text</td><td>Agent's raw response text</td></tr>
+        <tr><td>semantic_score</td><td>integer</td><td>Judge score 0–100 (null if no golden response)</td></tr>
+        <tr><td>judge_reasoning</td><td>text</td><td>One-sentence explanation from the judge</td></tr>
+        <tr><td>failure_reason</td><td>text</td><td>Human-readable reason for failure</td></tr>
+        <tr><td>assertion_results</td><td>jsonb</td><td>Detailed results for each assertion</td></tr>
+        <tr><td>trace</td><td>jsonb</td><td>Full execution trace array</td></tr>
+        <tr><td>created_at</td><td>timestamp</td><td>Result creation time</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 11. API REFERENCE -->
+  <section class="page-break">
+    <div class="section-header">
+      <div class="section-num">11</div>
+      <h2>API Reference</h2>
+    </div>
+
+    <p>All endpoints are Next.js Route Handlers located in <code>app/api/</code>. They accept and return JSON.</p>
+
+    <table>
+      <thead>
+        <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="badge badge-green">GET</span></td><td>/api/suites</td><td>List all test suites with test case counts</td></tr>
+        <tr><td><span class="badge badge-blue">POST</span></td><td>/api/suites</td><td>Create a new test suite</td></tr>
+        <tr><td><span class="badge badge-amber">DELETE</span></td><td>/api/suites/[id]</td><td>Delete a suite and all its test cases (cascade)</td></tr>
+        <tr><td><span class="badge badge-green">GET</span></td><td>/api/test-cases?suiteId=</td><td>List test cases for a given suite</td></tr>
+        <tr><td><span class="badge badge-blue">POST</span></td><td>/api/test-cases</td><td>Create a new test case</td></tr>
+        <tr><td><span class="badge badge-amber">DELETE</span></td><td>/api/test-cases/[id]</td><td>Delete a single test case</td></tr>
+        <tr><td><span class="badge badge-green">GET</span></td><td>/api/runs</td><td>List all runs with suite names</td></tr>
+        <tr><td><span class="badge badge-blue">POST</span></td><td>/api/runs</td><td>Create a new run for a suite</td></tr>
+        <tr><td><span class="badge badge-green">GET</span></td><td>/api/runs/[id]</td><td>Get a single run with all test results</td></tr>
+        <tr><td><span class="badge badge-green">GET</span></td><td>/api/stream/[runId]</td><td>SSE stream — real-time test execution events</td></tr>
+        <tr><td><span class="badge badge-green">GET</span></td><td>/api/compare?runA=&runB=</td><td>Benchmark two completed runs head-to-head</td></tr>
+        <tr><td><span class="badge badge-blue">POST</span></td><td>/api/mock-agent</td><td>Built-in demo agent (accepts prompt, returns trace)</td></tr>
+        <tr><td><span class="badge badge-blue">POST</span></td><td>/api/evaluate</td><td>One-off semantic scoring (no run required)</td></tr>
+        <tr><td><span class="badge badge-green">GET</span></td><td>/api/dashboard</td><td>Aggregate stats for the dashboard</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Agent API Contract</h3>
+    <p>Your AI agent must implement this interface to work with AgentTest:</p>
+
+    <pre><code><span class="code-comment">// Request sent to your agent:</span>
+POST /your-agent-endpoint
+Content-Type: application/json
+Authorization: Bearer &lt;your-key&gt;  <span class="code-comment">// optional</span>
+
+{
+  <span class="code-key">"prompt"</span>: <span class="code-string">"The trigger prompt text"</span>
+}
+
+<span class="code-comment">// Expected response from your agent:</span>
+{
+  <span class="code-key">"response"</span>: <span class="code-string">"The agent's final text response"</span>,
+  <span class="code-key">"trace"</span>: [
+    {
+      <span class="code-key">"step"</span>: <span class="code-num">1</span>,
+      <span class="code-key">"tool"</span>: <span class="code-string">"search_kb"</span>,
+      <span class="code-key">"params"</span>: { <span class="code-key">"query"</span>: <span class="code-string">"..."</span> },
+      <span class="code-key">"result"</span>: <span class="code-string">"..."</span>,
+      <span class="code-key">"timestamp"</span>: <span class="code-num">1749812345678</span>
+    }
+  ],
+  <span class="code-key">"token_usage"</span>: <span class="code-num">342</span>,
+  <span class="code-key">"step_count"</span>: <span class="code-num">2</span>
+}</code></pre>
+  </section>
+
+  <!-- 12. PAGES & COMPONENTS -->
+  <section>
+    <div class="section-header">
+      <div class="section-num">12</div>
+      <h2>Pages &amp; UI Components</h2>
+    </div>
+
+    <h3>Application Pages</h3>
+    <table>
+      <thead><tr><th>Route</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>/dashboard</td><td>Overview stats, charts, and recent run history</td></tr>
+        <tr><td>/suites</td><td>List of all test suites with test case counts and run buttons</td></tr>
+        <tr><td>/suites/new</td><td>Create a new test suite with agent URL and judge model selection</td></tr>
+        <tr><td>/suites/[id]</td><td>Suite detail — lists test cases, allows deletion and running</td></tr>
+        <tr><td>/suites/[id]/test-cases/new</td><td>Add a new test case with assertions and golden response</td></tr>
+        <tr><td>/suites/[id]/run</td><td>Live streaming run page with real-time test progress</td></tr>
+        <tr><td>/runs</td><td>Full run history across all suites</td></tr>
+        <tr><td>/runs/[id]</td><td>Full run report — traces, assertions, semantic analysis</td></tr>
+        <tr><td>/compare</td><td>Select two runs and view head-to-head benchmark</td></tr>
+        <tr><td>/code-checker</td><td>AI-powered code review with file upload support</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Shared Components</h3>
+    <table>
+      <thead><tr><th>Component</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>SemanticScoreRing</td><td>SVG circular progress ring that shows a 0–100 score with color coding (green/amber/red)</td></tr>
+        <tr><td>TraceTimeline</td><td>Expandable timeline of tool calls with params and results, with timestamps</td></tr>
+        <tr><td>ToolSequenceDiff</td><td>Side-by-side comparison of expected vs actual tool sequences with match highlighting</td></tr>
+        <tr><td>AssertionBuilder</td><td>Dynamic form for adding/removing/editing assertions with type-specific hints</td></tr>
+        <tr><td>TagInput</td><td>Tag-style input for entering tool names — supports Enter to add, Backspace to remove</td></tr>
+        <tr><td>RunLiveFeed</td><td>SSE consumer that renders a live test run with progress bar and per-test cards</td></tr>
+        <tr><td>DashboardCharts</td><td>Pass rate bar chart and trend area chart using shadcn ChartContainer + Recharts</td></tr>
+        <tr><td>StatusBadge</td><td>Color-coded badge for run status (running / completed / failed / passed)</td></tr>
+        <tr><td>Sidebar</td><td>Navigation sidebar with links, active state, and theme toggle (Light/Dark/System)</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 13. DEPLOYMENT -->
+  <section class="page-break">
+    <div class="section-header">
+      <div class="section-num">13</div>
+      <h2>Deployment Guide</h2>
+    </div>
+
+    <h3>Local Development</h3>
+    <pre><code><span class="code-comment"># 1. Install dependencies</span>
+npm install
+
+<span class="code-comment"># 2. Create .env.local</span>
+DATABASE_URL=postgresql://...
+GROQ_API_KEY=gsk_...
+
+<span class="code-comment"># 3. Push database schema</span>
+npx drizzle-kit push
+
+<span class="code-comment"># 4. Start development server</span>
+npm run dev</code></pre>
+
+    <h3>Deploying to Vercel</h3>
+    <p>AgentTest is optimized for Vercel deployment. Follow these steps:</p>
+
+    <ol style="padding-left: 20px; margin: 12px 0;">
+      <li style="margin-bottom: 8px; font-size: 13px; color: var(--gray-700);">Push your repository to GitHub</li>
+      <li style="margin-bottom: 8px; font-size: 13px; color: var(--gray-700);">Import the repo in Vercel Dashboard → Add New Project</li>
+      <li style="margin-bottom: 8px; font-size: 13px; color: var(--gray-700);">Add the following Environment Variables in Vercel Settings:</li>
+    </ol>
+
+    <table>
+      <thead><tr><th>Variable</th><th>Description</th><th>Required</th></tr></thead>
+      <tbody>
+        <tr><td>DATABASE_URL</td><td>Neon PostgreSQL connection string (with <code>?sslmode=require</code>)</td><td><span class="badge badge-blue">Yes</span></td></tr>
+        <tr><td>GROQ_API_KEY</td><td>API key from console.groq.com</td><td><span class="badge badge-blue">Yes</span></td></tr>
+        <tr><td>NEXT_PUBLIC_APP_URL</td><td>Your full Vercel URL e.g. <code>https://myapp.vercel.app</code></td><td><span class="badge badge-amber">Recommended</span></td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout info">
+      <span class="callout-icon">🔗</span>
+      <div>
+        <div class="callout-title">Mock agent on Vercel</div>
+        <p>When creating a suite on Vercel, use <code>/api/mock-agent</code> (relative path) as the agent URL instead of <code>http://localhost:3000/api/mock-agent</code>. The agent runner automatically resolves relative paths using the Vercel deployment URL. Existing suites with localhost URLs also auto-correct.</p>
+      </div>
+    </div>
+
+    <h3>Environment Variable Priority</h3>
+    <p>The agent URL resolver checks variables in this order:</p>
+    <pre><code>NEXT_PUBLIC_APP_URL  →  https://{VERCEL_URL}  →  http://localhost:3000</code></pre>
+  </section>
+
+  <!-- 14. MOCK AGENT -->
+  <section>
+    <div class="section-header">
+      <div class="section-num">14</div>
+      <h2>Mock Agent (Built-in)</h2>
+    </div>
+
+    <p>AgentTest ships with a built-in mock AI agent at <code>/api/mock-agent</code>. This lets you try the framework immediately without connecting a real AI agent.</p>
+
+    <h3>How the Mock Agent Works</h3>
+    <p>The mock agent analyzes keywords in the trigger prompt to select appropriate tools and generate a contextually relevant response. It supports three modes:</p>
+
+    <table>
+      <thead><tr><th>Mode (query param)</th><th>Behavior</th></tr></thead>
+      <tbody>
+        <tr><td><code>?mode=normal</code> (default)</td><td>Keyword-based tool selection, domain-aware response generation</td></tr>
+        <tr><td><code>?mode=fail</code></td><td>Returns wrong tools and an error-like response for testing failure scenarios</td></tr>
+        <tr><td><code>?mode=hallucinate</code></td><td>Returns a response with fabricated facts for testing hallucination detection</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Domain-Aware Responses</h3>
+    <p>The mock agent generates different responses based on prompt keywords:</p>
+    <ul>
+      <li><strong>escalation / critical / urgent</strong> → ticket escalation response</li>
+      <li><strong>search / find / lookup</strong> → knowledge base search response</li>
+      <li><strong>summarize / brief</strong> → summarization response</li>
+      <li><strong>classify / intent</strong> → intent classification response</li>
+      <li><strong>validate / verify</strong> → validation response</li>
+      <li><strong>format / convert</strong> → formatting response</li>
+    </ul>
+  </section>
+
+  <!-- 15. TECH STACK -->
+  <section>
+    <div class="section-header">
+      <div class="section-num">15</div>
+      <h2>Technology Stack</h2>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <h4>Frontend</h4>
+        <div class="stack-row">
+          <span class="stack-chip">Next.js 15</span>
+          <span class="stack-chip">React 18</span>
+          <span class="stack-chip">TypeScript</span>
+          <span class="stack-chip">Tailwind CSS v4</span>
+          <span class="stack-chip">shadcn/ui</span>
+          <span class="stack-chip">Recharts</span>
+          <span class="stack-chip">next-themes</span>
+          <span class="stack-chip">Sonner</span>
+          <span class="stack-chip">lucide-react</span>
+        </div>
+
+        <h4>Backend</h4>
+        <div class="stack-row">
+          <span class="stack-chip">Next.js Route Handlers</span>
+          <span class="stack-chip">Node.js</span>
+          <span class="stack-chip">Zod</span>
+          <span class="stack-chip">Web Streams API</span>
+          <span class="stack-chip">SSE</span>
+        </div>
+
+        <h4>Database</h4>
+        <div class="stack-row">
+          <span class="stack-chip">Neon PostgreSQL</span>
+          <span class="stack-chip">Drizzle ORM</span>
+          <span class="stack-chip">drizzle-kit</span>
+          <span class="stack-chip">@neondatabase/serverless</span>
+        </div>
+      </div>
+      <div>
+        <h4>AI / LLM</h4>
+        <div class="stack-row">
+          <span class="stack-chip">Groq SDK</span>
+          <span class="stack-chip">Llama 3.3 70B</span>
+          <span class="stack-chip">JSON Mode</span>
+          <span class="stack-chip">LLM-as-a-Judge</span>
+        </div>
+
+        <h4>Deployment</h4>
+        <div class="stack-row">
+          <span class="stack-chip">Vercel</span>
+          <span class="stack-chip">Serverless Functions</span>
+          <span class="stack-chip">Environment Variables</span>
+        </div>
+
+        <h4>Developer Experience</h4>
+        <div class="stack-row">
+          <span class="stack-chip">TypeScript strict</span>
+          <span class="stack-chip">ESLint</span>
+          <span class="stack-chip">drizzle-kit push</span>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <div class="callout success">
+      <span class="callout-icon">🚀</span>
+      <div>
+        <div class="callout-title">Open & Extensible</div>
+        <p>AgentTest works with any AI agent that speaks HTTP. No SDKs, no vendor lock-in. Point it at your existing agent endpoint and start testing in minutes.</p>
+      </div>
+    </div>
+
+    <p style="text-align: center; margin-top: 40px; color: var(--gray-400); font-size: 12px;">
+      AgentTest · Universal AI Agent Testing Framework · Built 2026<br/>
+      <em>To save as PDF: File → Print → Save as PDF in your browser</em>
+    </p>
+  </section>
+
+</div>
+
+</body>
+</html>
