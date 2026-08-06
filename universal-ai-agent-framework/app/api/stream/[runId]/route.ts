@@ -8,6 +8,7 @@ import { judgeSemanticSimilarity } from "@/lib/groq-judge"
 import { createSSEStream } from "@/lib/sse"
 
 export const runtime = "nodejs"
+export const maxDuration = 60
 
 export async function GET(_req: NextRequest, ctx: { params: Promise<{ runId: string }> }) {
   const { runId } = await ctx.params
