@@ -2,7 +2,7 @@
 
 import {
   Bar, BarChart, CartesianGrid, XAxis, YAxis,
-  Area, AreaChart, ResponsiveContainer, Tooltip,
+  Area, AreaChart,
 } from "recharts"
 import {
   ChartContainer,

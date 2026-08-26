@@ -1,12 +1,50 @@
+import dns from "node:dns/promises"
+import net from "node:net"
 import type { AgentResponse, TraceStep } from "./types"
 
 export class AgentRunnerError extends Error {
   constructor(
     message: string,
-    public readonly code: "TIMEOUT" | "AUTH_ERROR" | "NETWORK_ERROR" | "INVALID_RESPONSE"
+    public readonly code: "TIMEOUT" | "AUTH_ERROR" | "NETWORK_ERROR" | "INVALID_RESPONSE" | "FORBIDDEN_HOST"
   ) {
     super(message)
     this.name = "AgentRunnerError"
+  }
+}
+
+function isPrivateIPv4(ip: string): boolean {
+  const parts = ip.split(".").map(Number)
+  if (parts.length !== 4 || parts.some((p) => Number.isNaN(p))) return false
+  const [a, b] = parts
+  return a === 10 || a === 127 || a === 0 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168)
+}
+
+function isPrivateIPv6(ip: string): boolean {
+  const lower = ip.toLowerCase()
+  return lower === "::1" || lower === "::" || lower.startsWith("fc") || lower.startsWith("fd") || lower.startsWith("fe80")
+}
+
+// Blocks SSRF against internal/private infrastructure. Local dev is exempt so the app
+// can still test against its own localhost mock agent during development.
+async function assertPublicHost(urlString: string): Promise<void> {
+  if (process.env.NODE_ENV !== "production") return
+
+  const { hostname } = new URL(urlString)
+  if (hostname === "localhost") {
+    throw new AgentRunnerError("Agent URL may not target localhost in production", "FORBIDDEN_HOST")
+  }
+
+  const addresses = net.isIP(hostname)
+    ? [hostname]
+    : (await dns.lookup(hostname, { all: true }).catch(() => [])).map((r) => r.address)
+
+  for (const addr of addresses) {
+    if (isPrivateIPv4(addr) || isPrivateIPv6(addr)) {
+      throw new AgentRunnerError(
+        `Agent URL resolves to a private/internal address (${addr}), which is not allowed`,
+        "FORBIDDEN_HOST"
+      )
+    }
   }
 }
 
@@ -43,6 +81,8 @@ export async function runTestCase(
   triggerPrompt: string
 ): Promise<{ trace: TraceStep[]; response: string; tokenUsage: number; stepCount: number }> {
   agentUrl = resolveUrl(agentUrl)
+  await assertPublicHost(agentUrl)
+
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), 30_000)
 

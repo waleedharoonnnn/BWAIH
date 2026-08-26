@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic"
 
 import Link from "next/link"
-import { Plus, FlaskConical, ExternalLink } from "lucide-react"
+import { Plus, FlaskConical } from "lucide-react"
 import { db } from "@/lib/db"
 import { testSuites, testCases } from "@/lib/db/schema"
 import { eq, sql } from "drizzle-orm"

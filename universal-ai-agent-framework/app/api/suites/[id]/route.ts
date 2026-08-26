@@ -3,14 +3,18 @@ import { z } from "zod"
 import { db } from "@/lib/db"
 import { testSuites, testCases } from "@/lib/db/schema"
 import { eq } from "drizzle-orm"
+import { GROQ_MODELS } from "@/lib/groq-models"
 
 export const runtime = "nodejs"
+
+const VALID_MODEL_IDS = GROQ_MODELS.map((m) => m.id)
 
 const updateSuiteSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   description: z.string().optional().nullable(),
   agentUrl: z.string().url().optional(),
   agentAuthKey: z.string().optional().nullable(),
+  judgeModel: z.string().refine((v) => VALID_MODEL_IDS.includes(v), "Invalid judge model").optional(),
 })
 
 export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
@@ -19,8 +23,9 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
     const [suite] = await db.select().from(testSuites).where(eq(testSuites.id, id))
     if (!suite) return Response.json({ error: "Suite not found" }, { status: 404 })
 
+    const { agentAuthKey, ...suiteWithoutKey } = suite
     const cases = await db.select().from(testCases).where(eq(testCases.suiteId, id)).orderBy(testCases.createdAt)
-    return Response.json({ ...suite, testCases: cases })
+    return Response.json({ ...suiteWithoutKey, hasAuthKey: agentAuthKey !== null, testCases: cases })
   } catch (err) {
     console.error("GET /api/suites/[id]:", err)
     return Response.json({ error: "Failed to fetch suite" }, { status: 500 })
@@ -43,7 +48,8 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
       .returning()
 
     if (!suite) return Response.json({ error: "Suite not found" }, { status: 404 })
-    return Response.json(suite)
+    const { agentAuthKey, ...suiteWithoutKey } = suite
+    return Response.json({ ...suiteWithoutKey, hasAuthKey: agentAuthKey !== null })
   } catch (err) {
     console.error("PATCH /api/suites/[id]:", err)
     return Response.json({ error: "Failed to update suite" }, { status: 500 })

@@ -9,14 +9,23 @@ import { TagInput } from "@/components/tag-input"
 import { AssertionBuilder } from "@/components/assertion-builder"
 import type { Assertion } from "@/lib/db/schema"
 
-export function NewTestCaseForm({ suiteId }: { suiteId: string }) {
+type Initial = {
+  name: string
+  triggerPrompt: string
+  expectedToolSequence: string[]
+  goldenResponse: string
+  assertions: Assertion[]
+}
+
+export function NewTestCaseForm({ suiteId, testCaseId, initial }: { suiteId: string; testCaseId?: string; initial?: Initial }) {
   const router = useRouter()
+  const isEdit = Boolean(testCaseId)
   const [loading, setLoading] = useState(false)
-  const [name, setName] = useState("")
-  const [triggerPrompt, setTriggerPrompt] = useState("")
-  const [expectedToolSequence, setExpectedToolSequence] = useState<string[]>([])
-  const [goldenResponse, setGoldenResponse] = useState("")
-  const [assertions, setAssertions] = useState<Assertion[]>([])
+  const [name, setName] = useState(initial?.name ?? "")
+  const [triggerPrompt, setTriggerPrompt] = useState(initial?.triggerPrompt ?? "")
+  const [expectedToolSequence, setExpectedToolSequence] = useState<string[]>(initial?.expectedToolSequence ?? [])
+  const [goldenResponse, setGoldenResponse] = useState(initial?.goldenResponse ?? "")
+  const [assertions, setAssertions] = useState<Assertion[]>(initial?.assertions ?? [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -31,28 +40,29 @@ export function NewTestCaseForm({ suiteId }: { suiteId: string }) {
     }
 
     setLoading(true)
-    const tid = toast.loading("Saving test case…")
+    const tid = toast.loading(isEdit ? "Saving changes…" : "Saving test case…")
     try {
-      const res = await fetch("/api/test-cases", {
-        method: "POST",
+      const res = await fetch(isEdit ? `/api/test-cases/${testCaseId}` : "/api/test-cases", {
+        method: isEdit ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          suiteId,
+          ...(isEdit ? {} : { suiteId }),
           name: name.trim(),
           triggerPrompt: triggerPrompt.trim(),
-          expectedToolSequence: expectedToolSequence.length > 0 ? expectedToolSequence : undefined,
-          goldenResponse: goldenResponse.trim() || undefined,
-          assertions: assertions.length > 0 ? assertions : undefined,
+          expectedToolSequence: expectedToolSequence.length > 0 ? expectedToolSequence : (isEdit ? null : undefined),
+          goldenResponse: goldenResponse.trim() || (isEdit ? null : undefined),
+          assertions: assertions.length > 0 ? assertions : (isEdit ? null : undefined),
         }),
       })
       const data = await res.json()
       if (!res.ok) {
-        const msg = data.error ?? "Failed to create test case"
+        const msg = data.error ?? "Failed to save test case"
         toast.error(typeof msg === "string" ? msg : JSON.stringify(msg), { id: tid })
         return
       }
-      toast.success("Test case saved!", { id: tid })
+      toast.success(isEdit ? "Test case updated!" : "Test case saved!", { id: tid })
       router.push(`/suites/${suiteId}`)
+      router.refresh()
     } catch {
       toast.error("Network error — please try again", { id: tid })
     } finally {
@@ -70,7 +80,7 @@ export function NewTestCaseForm({ suiteId }: { suiteId: string }) {
           <ArrowLeft className="w-3.5 h-3.5" />
           Back to suite
         </Link>
-        <h1 className="text-xl font-semibold text-foreground">Add Test Case</h1>
+        <h1 className="text-xl font-semibold text-foreground">{isEdit ? "Edit Test Case" : "Add Test Case"}</h1>
         <p className="text-xs text-muted-foreground mt-0.5">Define what your agent should do and how to verify it</p>
       </div>
 
@@ -146,7 +156,7 @@ export function NewTestCaseForm({ suiteId }: { suiteId: string }) {
             className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 disabled:opacity-60 text-primary-foreground text-sm font-medium rounded-md transition-colors"
           >
             {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
-            {loading ? "Saving…" : "Save Test Case"}
+            {loading ? "Saving…" : isEdit ? "Save Changes" : "Save Test Case"}
           </button>
           <Link
             href={`/suites/${suiteId}`}

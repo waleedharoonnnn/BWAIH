@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft, Loader2, Bot } from "lucide-react"
@@ -11,20 +11,13 @@ import { cn } from "@/lib/utils"
 export default function NewSuitePage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
-  const [form, setForm] = useState({
+  const [form, setForm] = useState(() => ({
     name: "",
     description: "",
-    agentUrl: "",
+    agentUrl: typeof window !== "undefined" ? `${window.location.origin}/api/mock-agent` : "",
     agentAuthKey: "",
     judgeModel: DEFAULT_JUDGE_MODEL,
-  })
-
-  useEffect(() => {
-    setForm((prev) => ({
-      ...prev,
-      agentUrl: `${window.location.origin}/api/mock-agent`,
-    }))
-  }, [])
+  }))
 
   function set(field: string, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }))

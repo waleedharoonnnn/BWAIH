@@ -33,7 +33,7 @@ export default async function SuiteDetailPage(props: { params: Promise<{ id: str
           <div className="flex items-center gap-2">
             <RunSuiteButton suiteId={suite.id} />
             <Link
-              href={`/suites/new`}
+              href={`/suites/${id}/edit`}
               className="px-3 py-1.5 text-xs font-medium text-muted-foreground border border-border rounded-md hover:bg-muted hover:text-foreground transition-colors"
             >
               Edit
@@ -110,7 +110,15 @@ export default async function SuiteDetailPage(props: { params: Promise<{ id: str
                     )}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <DeleteTestCaseButton testCaseId={tc.id} testCaseName={tc.name} />
+                    <div className="flex items-center gap-1 justify-end">
+                      <Link
+                        href={`/suites/${id}/test-cases/${tc.id}/edit`}
+                        className="text-xs font-medium text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors"
+                      >
+                        Edit
+                      </Link>
+                      <DeleteTestCaseButton testCaseId={tc.id} testCaseName={tc.name} />
+                    </div>
                   </td>
                 </tr>
               ))}

@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useTheme } from "next-themes"
 import {
-  LayoutDashboard, FlaskConical, History, Settings, Zap,
+  LayoutDashboard, FlaskConical, History, Zap,
   ArrowLeftRight, Sun, Moon, Monitor,
 } from "lucide-react"
 import { cn } from "@/lib/utils"

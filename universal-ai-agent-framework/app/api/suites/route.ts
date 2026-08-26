@@ -28,7 +28,8 @@ export async function GET() {
         name: testSuites.name,
         description: testSuites.description,
         agentUrl: testSuites.agentUrl,
-        agentAuthKey: testSuites.agentAuthKey,
+        hasAuthKey: sql<boolean>`(${testSuites.agentAuthKey} is not null)`,
+        judgeModel: testSuites.judgeModel,
         createdAt: testSuites.createdAt,
         testCaseCount: sql<number>`count(${testCases.id})::int`,
       })
