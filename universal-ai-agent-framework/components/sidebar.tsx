@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 import { useTheme } from "next-themes"
 import {
   LayoutDashboard, FlaskConical, History, Settings, Zap,
-  Code2, ArrowLeftRight, Sun, Moon, Monitor,
+  ArrowLeftRight, Sun, Moon, Monitor,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -13,7 +13,6 @@ const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/suites", label: "Test Suites", icon: FlaskConical },
   { href: "/runs", label: "Run History", icon: History },
-  { href: "/code-checker", label: "Code Checker", icon: Code2 },
   { href: "/compare", label: "Compare Agents", icon: ArrowLeftRight },
 ]
 

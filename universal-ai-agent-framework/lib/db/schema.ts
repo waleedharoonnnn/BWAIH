@@ -6,7 +6,7 @@ export const testSuites = pgTable("test_suites", {
   description: text("description"),
   agentUrl: text("agent_url").notNull(),
   agentAuthKey: text("agent_auth_key"),
-  judgeModel: text("judge_model").default("llama-3.3-70b-versatile"),
+  judgeModel: text("judge_model").default("openai/gpt-oss-20b"),
   createdAt: timestamp("created_at").defaultNow(),
 })
 
