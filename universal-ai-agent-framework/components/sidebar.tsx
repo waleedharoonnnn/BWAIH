@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 import { useTheme } from "next-themes"
 import {
   LayoutDashboard, FlaskConical, History, Zap,
-  ArrowLeftRight, Sun, Moon, Monitor,
+  Sun, Moon, Monitor,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -13,7 +13,6 @@ const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/suites", label: "Test Suites", icon: FlaskConical },
   { href: "/runs", label: "Run History", icon: History },
-  { href: "/compare", label: "Compare Agents", icon: ArrowLeftRight },
 ]
 
 function ThemeToggle() {
