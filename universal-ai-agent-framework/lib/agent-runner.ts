@@ -211,7 +211,9 @@ export async function runTestCase(
   const bodyText = await res.text()
   if (!res.ok) {
     throw new AgentRunnerError(
-      `Agent returned HTTP ${res.status}: ${bodyText.slice(0, 200) || res.statusText}`,
+      `Agent returned HTTP ${res.status}${
+        bodyText && !bodyText.trimStart().startsWith("<") ? `: ${bodyText.slice(0, 200)}` : res.statusText ? ` ${res.statusText}` : ""
+      }`,
       "NETWORK_ERROR"
     )
   }

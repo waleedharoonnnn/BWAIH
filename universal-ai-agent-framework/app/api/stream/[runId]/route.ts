@@ -121,14 +121,15 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ runId: str
               hallucinated: judgeResult.hallucinated,
             })
 
-            if (judgeResult.hallucinated && !failureReason) {
-              failureReason = "Response contains hallucinated content"
+            if (!failureReason && judgeResult.score < 50) {
+              failureReason = `Semantic score ${judgeResult.score} below threshold (50)${
+                judgeResult.hallucinated ? " — judge flagged possible hallucination" : ""
+              }`
             }
           }
 
           passed = assertionsPassed && (semanticScore === null || semanticScore >= 50)
           if (passed) failureReason = undefined
-          else if (!failureReason) failureReason = `Semantic score ${semanticScore} below threshold (50)`
         } catch (err) {
           failureReason = err instanceof AgentRunnerError
             ? err.message

@@ -56,3 +56,15 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
     return Response.json({ error: "Failed to fetch run" }, { status: 500 })
   }
 }
+
+export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await ctx.params
+    const [deleted] = await db.delete(testRuns).where(eq(testRuns.id, id)).returning({ id: testRuns.id })
+    if (!deleted) return Response.json({ error: "Run not found" }, { status: 404 })
+    return new Response(null, { status: 204 })
+  } catch (err) {
+    console.error("DELETE /api/runs/[id]:", err)
+    return Response.json({ error: "Failed to delete run" }, { status: 500 })
+  }
+}

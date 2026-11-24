@@ -7,6 +7,7 @@ import { testRuns, testSuites } from "@/lib/db/schema"
 import { eq, desc } from "drizzle-orm"
 import { StatusBadge } from "@/components/status-badge"
 import { ReRunInlineButton } from "./rerun-inline-button"
+import { DeleteRunButton } from "./delete-run-button"
 
 async function getRuns() {
   return db
@@ -113,6 +114,7 @@ export default async function RunsPage() {
                           Report <ArrowRight className="w-3 h-3" />
                         </Link>
                         <ReRunInlineButton suiteId={run.suiteId} />
+                        <DeleteRunButton runId={run.id} suiteName={run.suiteName ?? "suite"} />
                       </div>
                     </td>
                   </tr>
