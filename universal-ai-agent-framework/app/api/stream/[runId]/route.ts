@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server"
 import { db } from "@/lib/db"
-import { testRuns, testCases, testResults, testSuites } from "@/lib/db/schema"
+import { testRuns, testCases, testResults, testSuites, type Assertion } from "@/lib/db/schema"
 import { eq } from "drizzle-orm"
 import { runTestCase, AgentRunnerError } from "@/lib/agent-runner"
 import { runAssertions } from "@/lib/assertions"
@@ -8,7 +8,7 @@ import { judgeSemanticSimilarity } from "@/lib/groq-judge"
 import { createSSEStream } from "@/lib/sse"
 
 export const runtime = "nodejs"
-export const maxDuration = 60
+export const maxDuration = 300
 
 export async function GET(_req: NextRequest, ctx: { params: Promise<{ runId: string }> }) {
   const { runId } = await ctx.params
@@ -77,7 +77,12 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ runId: str
 
           emit("trace_captured", { testCaseId: tc.id, trace: traceData, stepCount })
 
-          const assertions = tc.assertions ?? []
+          const assertions: Assertion[] = [
+            ...(tc.expectedToolSequence?.length
+              ? [{ type: "tool_order" as const, value: tc.expectedToolSequence, description: "Expected tool sequence" }]
+              : []),
+            ...(tc.assertions ?? []),
+          ]
           let assertionsPassed = true
 
           if (assertions.length > 0) {
@@ -103,7 +108,8 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ runId: str
               tc.goldenResponse,
               rawResponse,
               tc.triggerPrompt,
-              suite.judgeModel ?? undefined
+              suite.judgeModel ?? undefined,
+              traceData.map((s) => `${s.tool}(${JSON.stringify(s.params)}) → ${s.result}`).join("\n")
             )
             semanticScore = judgeResult.score
             judgeReasoning = judgeResult.reasoning
@@ -121,7 +127,8 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ runId: str
           }
 
           passed = assertionsPassed && (semanticScore === null || semanticScore >= 50)
-          if (!passed && !failureReason) failureReason = "Semantic score below threshold (50)"
+          if (passed) failureReason = undefined
+          else if (!failureReason) failureReason = `Semantic score ${semanticScore} below threshold (50)`
         } catch (err) {
           failureReason = err instanceof AgentRunnerError
             ? err.message

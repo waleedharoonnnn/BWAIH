@@ -55,8 +55,8 @@ export function Sidebar() {
             <Zap className="w-3.5 h-3.5 text-primary-foreground" />
           </div>
           <div>
-            <span className="text-sm font-bold text-sidebar-foreground tracking-tight">ASTERA</span>
-            <span className="block text-[10px] text-muted-foreground leading-none">AgentTest v1</span>
+            <span className="text-sm font-bold text-sidebar-foreground tracking-tight">AgentTest</span>
+            <span className="block text-[10px] text-muted-foreground leading-none">AI agent testing</span>
           </div>
         </Link>
       </div>

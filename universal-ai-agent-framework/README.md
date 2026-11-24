@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AgentTest
 
-## Getting Started
+A harness-agnostic testing, validation and scoring dashboard for AI agents.
 
-First, run the development server:
+**Live:** https://bwaih-three.vercel.app · **Demo script:** [DEMO.md](DEMO.md)
+
+## Features
+
+- **Test Suite Builder:** each test case has a trigger prompt, an expected tool sequence, a golden response and assertions.
+- **Execution Runner:** calls any agent URL and streams progress live over Server-Sent Events.
+- **Deterministic assertions:**
+  - tool called
+  - tool order (in-order subsequence)
+  - step limit
+  - parameter type
+  - output contains / does not contain
+- **LLM-as-a-Judge:** a Groq model scores the agent's answer against the golden response (0–100). It flags hallucinations and checks claims against the agent's own tool results.
+- **Report card:** pass/fail per test, an expected-vs-actual tool diff, the full execution trace, token usage and semantic scores.
+
+## Connecting an agent
+
+The runner sends `POST {"prompt": "...", "input": "...", "message": "..."}` with an optional `Authorization: Bearer <key>` header. It accepts any of these replies:
+
+| Format | Response text | Trace |
+|---|---|---|
+| AgentTest | `response` | `trace[]` (`tool`, `params`, `result`) |
+| OpenAI chat completions | `choices[0].message.content` | `choices[0].message.tool_calls` |
+| Anthropic messages | `content[type=text]` | `content[type=tool_use]` |
+| LangChain | `output` | `intermediate_steps` |
+| Plain text / other JSON | body, or `output` / `answer` / `text` / `result` | (none) |
+
+If the agent returns no trace, the output assertions and semantic scoring still run.
+
+### Built-in live agent: `/api/agent`
+
+The app includes a real Groq-powered agent (`openai/gpt-oss-120b`, which you can override with `AGENT_MODEL`). Its tools call live public APIs: Wikipedia, Open-Meteo weather, Frankfurter currency rates, a calculator and a clock. Set `AGENT_API_KEY` to require a bearer token.
+
+## Setup
 
 ```bash
+npm install
+npx drizzle-kit push   # create tables
+npm run seed           # optional: add the "Live Research Agent" demo suite
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`.env.local`:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+DATABASE_URL=postgresql://...        # Neon Postgres
+GROQ_API_KEY=gsk_...                 # judge + built-in agent
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+# optional
+AGENT_API_KEY=...                    # protect /api/agent
+AGENT_MODEL=openai/gpt-oss-120b
+BASIC_AUTH_PASSWORD=...              # password-protect the whole app (user: admin)
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Stack
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Next.js 16 (App Router) · Neon Postgres + Drizzle ORM · Groq · Tailwind CSS + shadcn · Recharts · Vercel

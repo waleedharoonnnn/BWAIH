@@ -14,7 +14,7 @@ export default function NewSuitePage() {
   const [form, setForm] = useState(() => ({
     name: "",
     description: "",
-    agentUrl: typeof window !== "undefined" ? `${window.location.origin}/api/mock-agent` : "",
+    agentUrl: typeof window !== "undefined" ? `${window.location.origin}/api/agent` : "",
     agentAuthKey: "",
     judgeModel: DEFAULT_JUDGE_MODEL,
   }))
@@ -116,7 +116,8 @@ export default function NewSuitePage() {
               className="w-full h-9 px-3 text-sm border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring font-mono"
             />
             <p className="mt-1 text-xs text-muted-foreground">
-              Pre-filled with the built-in mock agent on your domain. Replace with your real agent URL to test it.
+              Pre-filled with the built-in live agent (Groq LLM + real tools). Replace with any agent URL — it receives
+              <code className="font-mono"> {"{ prompt }"}</code> via POST and may reply with JSON (AgentTest, OpenAI, Anthropic, LangChain) or plain text.
             </p>
           </div>
 

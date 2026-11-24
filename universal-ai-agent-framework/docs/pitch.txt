@@ -20,12 +20,12 @@
   calls your agent, checks the tool sequence, evaluates every assertion, and then sends the response to a Groq LLM to score how semantically accurate it is
   — from 0 to 100.
 
-  If the score is below 50, or if it detects a hallucination, the test fails. And you see exactly why.
+  If an assertion fails or the score is below 50, the test fails — and you see exactly which step went wrong. Hallucinations are flagged too.
 
   Everything streams live in the browser. No refresh, no waiting. You watch each test pass or fail in real time.
 
-  We also built an agent comparison feature — so you can take two versions of the same agent, benchmark them head to head across accuracy, semantic quality,
-   token efficiency, and speed, and actually know which one to ship.
+  And it's harness-agnostic — point it at any agent URL. It auto-detects OpenAI, Anthropic, LangChain or custom response formats, so you don't
+   have to rewrite your agent to test it. For the demo, it's testing a live Groq-powered agent that calls real APIs — Wikipedia, weather, currency rates.
 
   The whole thing runs on Next.js, Neon Postgres, and Groq. It's deployed on Vercel. And yes — it has dark mode. [pause] Priorities.
 

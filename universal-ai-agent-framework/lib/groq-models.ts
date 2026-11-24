@@ -22,8 +22,8 @@ export const GROQ_MODELS: GroqModel[] = [
     contextWindow: "128k",
   },
   {
-    id: "qwen/qwen3.6-27b",
-    label: "Qwen3.6 27B",
+    id: "qwen/qwen3.8-27b",
+    label: "Qwen3.8 27B",
     description: "Strong reasoning, balanced speed",
     speed: "balanced",
     contextWindow: "32k",

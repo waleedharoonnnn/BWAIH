@@ -30,14 +30,17 @@ function evaluate(assertion: Assertion, result: RunInput): AssertionResult {
     case "tool_order": {
       const expected = Array.isArray(assertion.value) ? assertion.value : [String(assertion.value)]
       const actual = toolNames
-      const matched = expected.every((t, i) => actual[i] === t)
+      // In-order subsequence: A must be called before B, other tools may be interleaved.
+      let cursor = 0
+      for (const tool of actual) if (tool === expected[cursor]) cursor++
+      const matched = cursor === expected.length
       return {
         assertion,
         passed: matched,
         actual: actual.join(" → "),
         message: matched
           ? `Tool sequence matched: ${expected.join(" → ")}`
-          : `Expected sequence: ${expected.join(" → ")}, got: ${actual.join(" → ") || "none"}`,
+          : `Expected sequence: ${expected.join(" → ")}, got: ${actual.join(" → ") || "none"} — "${expected[cursor]}" missing or out of order`,
       }
     }
 
@@ -66,7 +69,7 @@ function evaluate(assertion: Assertion, result: RunInput): AssertionResult {
         }
       }
       const paramValue = step.params[paramName]
-      const actualType = typeof paramValue
+      const actualType = paramValue === null ? "null" : Array.isArray(paramValue) ? "array" : typeof paramValue
       const passed = actualType === expectedType
       return {
         assertion,
@@ -80,7 +83,7 @@ function evaluate(assertion: Assertion, result: RunInput): AssertionResult {
 
     case "output_contains": {
       const needle = String(assertion.value)
-      const passed = result.response.includes(needle)
+      const passed = result.response.toLowerCase().includes(needle.toLowerCase())
       return {
         assertion,
         passed,
@@ -93,7 +96,7 @@ function evaluate(assertion: Assertion, result: RunInput): AssertionResult {
 
     case "output_not_contains": {
       const needle = String(assertion.value)
-      const passed = !result.response.includes(needle)
+      const passed = !result.response.toLowerCase().includes(needle.toLowerCase())
       return {
         assertion,
         passed,

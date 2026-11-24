@@ -8,7 +8,8 @@ export async function judgeSemanticSimilarity(
   goldenResponse: string,
   actualResponse: string,
   originalPrompt: string,
-  model: string = DEFAULT_JUDGE_MODEL
+  model: string = DEFAULT_JUDGE_MODEL,
+  toolContext = ""
 ): Promise<SemanticJudgeResult> {
   const systemPrompt = `You are a strict AI evaluation judge. Your job is to compare an agent's actual response against a golden (expected) response and score semantic similarity.
 
@@ -19,7 +20,9 @@ Scoring rules:
 - 25-49: Significant misalignment, wrong focus, or notable inaccuracies
 - 0-24: Completely off-topic, severely wrong, or heavy hallucination
 
-Hallucination detection: Flag as hallucinated if the actual response contains specific facts, numbers, names, or claims NOT present in the golden response and not inferable from the prompt.
+Judge meaning and intent, not exact wording. Live values (prices, weather, times, exchange rates) may legitimately differ from the golden response.
+
+Hallucination detection: Flag as hallucinated only if the actual response contains specific facts, numbers, names, or claims that are NOT supported by the golden response, the prompt, or the agent's tool results.
 
 You MUST respond with ONLY valid JSON in this exact format, no markdown, no explanation:
 {"score": <integer 0-100>, "reasoning": "<one sentence explanation>", "hallucinated": <true|false>}`
@@ -29,6 +32,9 @@ You MUST respond with ONLY valid JSON in this exact format, no markdown, no expl
 Golden response: ${goldenResponse}
 
 Actual response: ${actualResponse}
+
+Agent tool results (grounded evidence the agent retrieved):
+${toolContext ? toolContext.slice(0, 6000) : "(none)"}
 
 Evaluate and return JSON.`
 
@@ -40,7 +46,7 @@ Evaluate and return JSON.`
         { role: "user", content: userPrompt },
       ],
       temperature: 0.1,
-      max_tokens: 300,
+      max_tokens: 1000,
       reasoning_effort: "low",
       response_format: { type: "json_object" },
     })
@@ -83,11 +89,12 @@ Evaluate and return JSON.`
     }
   } catch (err) {
     // If the selected model is decommissioned, silently retry with the default
-    const isDecommissioned =
-      err instanceof Error && err.message.includes("model_decommissioned")
-    if (isDecommissioned && model !== DEFAULT_JUDGE_MODEL) {
-      console.warn(`[groq-judge] Model "${model}" is decommissioned — retrying with ${DEFAULT_JUDGE_MODEL}`)
-      return judgeSemanticSimilarity(goldenResponse, actualResponse, originalPrompt, DEFAULT_JUDGE_MODEL)
+    // If the selected model was retired or renamed, retry once with the default
+    const modelUnavailable =
+      err instanceof Error && /model_decommissioned|model_not_found|does not exist/.test(err.message)
+    if (modelUnavailable && model !== DEFAULT_JUDGE_MODEL) {
+      console.warn(`[groq-judge] Model "${model}" unavailable — retrying with ${DEFAULT_JUDGE_MODEL}`)
+      return judgeSemanticSimilarity(goldenResponse, actualResponse, originalPrompt, DEFAULT_JUDGE_MODEL, toolContext)
     }
     console.error("[groq-judge] API or execution error:", err)
     return {

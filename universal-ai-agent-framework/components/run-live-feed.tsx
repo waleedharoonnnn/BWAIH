@@ -126,7 +126,7 @@ export function RunLiveFeed({ runId, suiteName, totalCases }: Props) {
       case "test_started":
         dispatch({ type: "TEST_STARTED", id: event.testCaseId, name: event.name }); break
       case "trace_captured":
-        dispatch({ type: "TRACE_CAPTURED", id: event.testCaseId, trace: event.trace, stepCount: event.trace.length }); break
+        dispatch({ type: "TRACE_CAPTURED", id: event.testCaseId, trace: event.trace, stepCount: event.stepCount ?? event.trace.length }); break
       case "assertions_evaluated":
         dispatch({ type: "ASSERTIONS_EVALUATED", id: event.testCaseId, passed: event.passed, results: event.results }); break
       case "semantic_scored":

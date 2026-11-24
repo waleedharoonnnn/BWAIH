@@ -12,7 +12,10 @@ const VALID_MODEL_IDS = GROQ_MODELS.map((m) => m.id)
 const updateSuiteSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   description: z.string().optional().nullable(),
-  agentUrl: z.string().url().optional(),
+  agentUrl: z.string().min(1).refine(
+    (v) => v.startsWith("/") || (() => { try { new URL(v); return true } catch { return false } })(),
+    "Must be a valid URL or a relative path starting with /"
+  ).optional(),
   agentAuthKey: z.string().optional().nullable(),
   judgeModel: z.string().refine((v) => VALID_MODEL_IDS.includes(v), "Invalid judge model").optional(),
 })

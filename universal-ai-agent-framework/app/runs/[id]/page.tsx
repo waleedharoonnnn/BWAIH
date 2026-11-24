@@ -167,7 +167,7 @@ function ResultCard({ result }: {
 
       <div className="border-t border-border px-4 py-4 space-y-5">
         {/* Tool diff */}
-        {(result.expectedToolSequence?.length || result.actualToolSequence?.length) && (
+        {(result.expectedToolSequence?.length || result.actualToolSequence?.length) ? (
           <div>
             <h3 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2.5">Tool Sequence</h3>
             <ToolSequenceDiff
@@ -175,7 +175,7 @@ function ResultCard({ result }: {
               actual={result.actualToolSequence ?? []}
             />
           </div>
-        )}
+        ) : null}
 
         {/* Assertions */}
         {result.assertionResults && result.assertionResults.length > 0 && (
