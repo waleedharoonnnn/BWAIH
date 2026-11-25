@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic"
 
 import Link from "next/link"
-import { History, CheckCircle2, XCircle, ArrowRight } from "lucide-react"
+import { History, CheckCircle2, XCircle, ArrowRight, AlertTriangle, GitCompareArrows } from "lucide-react"
 import { db } from "@/lib/db"
 import { testRuns, testSuites } from "@/lib/db/schema"
 import { eq, desc } from "drizzle-orm"
@@ -17,6 +17,8 @@ async function getRuns() {
       status: testRuns.status,
       passCount: testRuns.passCount,
       failCount: testRuns.failCount,
+      flakyCount: testRuns.flakyCount,
+      agentUrl: testRuns.agentUrl,
       startedAt: testRuns.startedAt,
       completedAt: testRuns.completedAt,
       suiteName: testSuites.name,
@@ -33,8 +35,21 @@ export default async function RunsPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-xl font-semibold text-foreground">Run History</h1>
-        <p className="text-xs text-muted-foreground mt-0.5">All test suite executions and their results</p>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h1 className="text-xl font-semibold text-foreground">Run History</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">All test suite executions and their results</p>
+          </div>
+          {runs.length >= 2 && (
+            <Link
+              href="/runs/compare"
+              className="flex items-center gap-1.5 px-3 py-1.5 border border-border hover:bg-muted text-foreground text-sm font-medium rounded-md transition-colors"
+            >
+              <GitCompareArrows className="w-3.5 h-3.5" />
+              Compare runs
+            </Link>
+          )}
+        </div>
       </div>
 
       {runs.length === 0 ? (
@@ -73,6 +88,7 @@ export default async function RunsPage() {
                       <Link href={`/suites/${run.suiteId}`} className="text-sm font-medium text-foreground hover:text-primary">
                         {run.suiteName ?? "—"}
                       </Link>
+                      {run.agentUrl && <div className="text-[11px] font-mono text-muted-foreground/70 truncate max-w-[220px]">{run.agentUrl}</div>}
                     </td>
                     <td className="px-4 py-2.5">
                       <StatusBadge status={run.status as "passed" | "failed" | "running" | "completed"} />
@@ -95,6 +111,11 @@ export default async function RunsPage() {
                         <span className="flex items-center gap-0.5 text-red-400">
                           <XCircle className="w-3 h-3" />{run.failCount ?? 0}
                         </span>
+                        {run.flakyCount > 0 && (
+                          <span className="flex items-center gap-0.5 text-amber-500" title="Flaky: passed on some attempts only">
+                            <AlertTriangle className="w-3 h-3" />{run.flakyCount}
+                          </span>
+                        )}
                       </span>
                     </td>
                     <td className="px-4 py-2.5 text-xs text-muted-foreground">

@@ -4,21 +4,26 @@ import type { ChatCompletionMessageParam, ChatCompletionTool } from "groq-sdk/re
 import type { TraceStep } from "@/lib/db/schema"
 
 export const runtime = "nodejs"
-export const maxDuration = 60
+export const maxDuration = 120
 
 /**
  * A real LLM agent: Groq-hosted model + a tool-calling loop over live public APIs.
  * Contract: POST { prompt } → { response, trace, token_usage, step_count }
  * Protect it in production by setting AGENT_API_KEY (callers then send `Authorization: Bearer <key>`).
+ *
+ * `?version=v2` serves the SAME model with a "cleaned up" config: terser tool descriptions,
+ * a shorter system prompt and `amount` retyped as a string. It exists to demo how small
+ * prompt/tool-description edits silently change agent behaviour — compare runs of v1 vs v2.
  */
 
 const MODEL = process.env.AGENT_MODEL ?? "openai/gpt-oss-120b"
 const MAX_TURNS = 6
 const USER_AGENT = "AgentTest-DemoAgent/1.0"
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
+// maxRetries: the SDK waits out Groq 429s (honouring retry-after) instead of failing the test.
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY, maxRetries: 5, timeout: 40_000 })
 
-const TOOLS: ChatCompletionTool[] = [
+const TOOLS_V1: ChatCompletionTool[] = [
   {
     type: "function",
     function: {
@@ -85,6 +90,29 @@ const TOOLS: ChatCompletionTool[] = [
   },
 ]
 
+// v2: same tools, descriptions shortened and one schema change — the kind of edit that "looks harmless".
+const V2_DESCRIPTIONS: Record<string, string> = {
+  search_wikipedia: "Wikipedia lookup.",
+  get_weather: "Weather.",
+  convert_currency: "Currency helper.",
+  calculator: "Symbolic math engine for advanced equations.",
+  get_current_time: "Clock.",
+}
+const TOOLS_V2: ChatCompletionTool[] = TOOLS_V1.map((t) => {
+  const fn = structuredClone(t.function!)
+  fn.description = V2_DESCRIPTIONS[fn.name] ?? fn.description
+  if (fn.name === "convert_currency") {
+    const props = (fn.parameters as { properties: Record<string, { type: string; description?: string }> }).properties
+    props.amount = { type: "string", description: "Amount" }
+  }
+  return { ...t, function: fn }
+})
+
+const SYSTEM_PROMPTS = {
+  v1: "You are a helpful research assistant. Use the provided tools whenever a question needs live data, facts, or arithmetic — do not guess numbers. Keep final answers concise (2-4 sentences).",
+  v2: "You are a helpful assistant. Keep answers concise (2-4 sentences).",
+}
+
 async function getJson(url: string): Promise<unknown> {
   const res = await fetch(url, { headers: { "User-Agent": USER_AGENT }, signal: AbortSignal.timeout(8000) })
   if (!res.ok) throw new Error(`HTTP ${res.status} from ${new URL(url).host}`)
@@ -93,7 +121,7 @@ async function getJson(url: string): Promise<unknown> {
 
 async function searchWikipedia({ query }: { query: string }) {
   const search = (await getJson(
-    `https://en.wikipedia.org/w/rest.php/v1/search/page?q=${encodeURIComponent(query)}&limit=3`
+    `https://en.wikipedia.org/w/rest.php/v1/search/page?q=${encodeURIComponent(query)}&limit=2`
   )) as { pages: { key: string; title: string }[] }
   const summaries = await Promise.all(
     search.pages.map(async (p) => {
@@ -101,7 +129,7 @@ async function searchWikipedia({ query }: { query: string }) {
         const s = (await getJson(
           `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(p.key)}`
         )) as { title: string; extract: string }
-        return { title: s.title, summary: s.extract }
+        return { title: s.title, summary: s.extract.slice(0, 600) }
       } catch {
         return { title: p.title, summary: "" }
       }
@@ -206,7 +234,7 @@ async function executeTool(name: string, args: Record<string, unknown>): Promise
   switch (name) {
     case "search_wikipedia": return searchWikipedia(args as { query: string })
     case "get_weather": return getWeather(args as { city: string })
-    case "convert_currency": return convertCurrency(args as { amount: number; from: string; to: string })
+    case "convert_currency": return convertCurrency({ ...(args as { from: string; to: string }), amount: Number(args.amount) })
     case "calculator": return { expression: args.expression, result: calculate(String(args.expression)) }
     case "get_current_time": return getCurrentTime(args as { timezone: string })
     default: throw new Error(`Unknown tool: ${name}`)
@@ -214,6 +242,9 @@ async function executeTool(name: string, args: Record<string, unknown>): Promise
 }
 
 export async function POST(req: NextRequest) {
+  const version = req.nextUrl.searchParams.get("version") === "v2" ? "v2" : "v1"
+  const tools = version === "v2" ? TOOLS_V2 : TOOLS_V1
+
   const requiredKey = process.env.AGENT_API_KEY
   if (requiredKey && req.headers.get("authorization") !== `Bearer ${requiredKey}`) {
     return Response.json({ error: "Unauthorized" }, { status: 401 })
@@ -231,8 +262,7 @@ export async function POST(req: NextRequest) {
   const messages: ChatCompletionMessageParam[] = [
     {
       role: "system",
-      content:
-        "You are a helpful research assistant. Use the provided tools whenever a question needs live data, facts, or arithmetic — do not guess numbers. Keep final answers concise (2-4 sentences).",
+      content: SYSTEM_PROMPTS[version],
     },
     { role: "user", content: prompt },
   ]
@@ -244,9 +274,10 @@ export async function POST(req: NextRequest) {
       const completion = await groq.chat.completions.create({
         model: MODEL,
         messages,
-        tools: TOOLS,
+        tools,
         tool_choice: "auto",
         temperature: 0.2,
+        reasoning_effort: "low",
       })
       tokenUsage += completion.usage?.total_tokens ?? 0
       const msg = completion.choices[0]?.message

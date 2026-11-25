@@ -17,6 +17,7 @@ export default async function EditSuitePage(props: { params: Promise<{ id: strin
         description: suite.description ?? "",
         agentUrl: suite.agentUrl,
         judgeModel: suite.judgeModel ?? undefined,
+        repeatCount: suite.repeatCount,
         hasAuthKey: suite.agentAuthKey !== null,
       }}
     />

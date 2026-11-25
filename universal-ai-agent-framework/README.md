@@ -15,6 +15,8 @@ A harness-agnostic testing, validation and scoring dashboard for AI agents.
   - parameter type
   - output contains / does not contain
 - **LLM-as-a-Judge:** a Groq model scores the agent's answer against the golden response (0–100). It flags hallucinations and checks claims against the agent's own tool results.
+- **Reliability score:** run each test 1–5 times. You get a pass rate per test, flaky tests are flagged ("passes 1/2"), and token and step variance is shown.
+- **Regression comparison:** compare any two runs to see which tests regressed or were fixed, and how pass rate, semantic score, tokens and steps changed. Each run records the agent URL it tested, so you can see what changed.
 - **Report card:** pass/fail per test, an expected-vs-actual tool diff, the full execution trace, token usage and semantic scores.
 
 ## Connecting an agent
@@ -34,6 +36,10 @@ If the agent returns no trace, the output assertions and semantic scoring still 
 ### Built-in live agent: `/api/agent`
 
 The app includes a real Groq-powered agent (`openai/gpt-oss-120b`, which you can override with `AGENT_MODEL`). Its tools call live public APIs: Wikipedia, Open-Meteo weather, Frankfurter currency rates, a calculator and a clock. Set `AGENT_API_KEY` to require a bearer token.
+
+`/api/agent?version=v2` is the same agent with shorter tool descriptions, a shorter system prompt and `amount` retyped as a string. Use it to show how a small config edit causes regressions that **Compare Runs** catches.
+
+**Rate limits:** on Groq's free tier, each model allows 8,000 tokens per minute. Long suites with several runs per test are throttled; the agent waits and retries. A run stops starting new attempts after about 4.5 minutes, so it always finishes within Vercel's 5-minute limit.
 
 ## Setup
 

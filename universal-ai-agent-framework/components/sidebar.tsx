@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useTheme } from "next-themes"
 import {
-  LayoutDashboard, FlaskConical, History, Zap,
+  LayoutDashboard, FlaskConical, History, Zap, GitCompareArrows,
   Sun, Moon, Monitor,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -13,6 +13,7 @@ const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/suites", label: "Test Suites", icon: FlaskConical },
   { href: "/runs", label: "Run History", icon: History },
+  { href: "/runs/compare", label: "Compare Runs", icon: GitCompareArrows },
 ]
 
 function ThemeToggle() {
@@ -43,7 +44,10 @@ export function Sidebar() {
   const pathname = usePathname()
 
   function isActive(href: string) {
-    return pathname === href || (href !== "/dashboard" && pathname.startsWith(href))
+    if (pathname === href) return true
+    if (href === "/dashboard") return false
+    const longer = NAV.some((n) => n.href !== href && n.href.startsWith(href) && pathname.startsWith(n.href))
+    return !longer && pathname.startsWith(href)
   }
 
   return (

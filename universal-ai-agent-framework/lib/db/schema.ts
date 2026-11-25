@@ -7,6 +7,7 @@ export const testSuites = pgTable("test_suites", {
   agentUrl: text("agent_url").notNull(),
   agentAuthKey: text("agent_auth_key"),
   judgeModel: text("judge_model").default("openai/gpt-oss-20b"),
+  repeatCount: integer("repeat_count").notNull().default(1),
   createdAt: timestamp("created_at").defaultNow(),
 })
 
@@ -25,8 +26,11 @@ export const testRuns = pgTable("test_runs", {
   id: uuid("id").primaryKey().defaultRandom(),
   suiteId: uuid("suite_id").references(() => testSuites.id, { onDelete: "cascade" }).notNull(),
   status: text("status").notNull().default("running"),
+  agentUrl: text("agent_url"),
+  repeatCount: integer("repeat_count").notNull().default(1),
   passCount: integer("pass_count").default(0),
   failCount: integer("fail_count").default(0),
+  flakyCount: integer("flaky_count").notNull().default(0),
   startedAt: timestamp("started_at").defaultNow(),
   completedAt: timestamp("completed_at"),
 })
@@ -35,6 +39,7 @@ export const testResults = pgTable("test_results", {
   id: uuid("id").primaryKey().defaultRandom(),
   runId: uuid("run_id").references(() => testRuns.id, { onDelete: "cascade" }).notNull(),
   testCaseId: uuid("test_case_id").references(() => testCases.id, { onDelete: "cascade" }).notNull(),
+  attempt: integer("attempt").notNull().default(1),
   passed: boolean("passed"),
   actualToolSequence: jsonb("actual_tool_sequence").$type<string[]>(),
   tokenUsage: integer("token_usage"),

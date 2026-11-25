@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { db } from "@/lib/db"
-import { testSuites, testCases } from "@/lib/db/schema"
+import { testSuites, testCases, testRuns } from "@/lib/db/schema"
 import { eq } from "drizzle-orm"
 import { RunLiveFeed } from "@/components/run-live-feed"
 
@@ -20,6 +20,9 @@ export default async function SuiteRunPage(props: {
   if (!suite) notFound()
 
   const cases = await db.select().from(testCases).where(eq(testCases.suiteId, id))
+  const [run] = await db.select().from(testRuns).where(eq(testRuns.id, runId))
+  if (!run) notFound()
+  if (run.status !== "running") redirect(`/runs/${runId}`)
 
   return (
     <div className="space-y-5">
@@ -30,11 +33,11 @@ export default async function SuiteRunPage(props: {
         </Link>
         <h1 className="text-xl font-semibold text-foreground">Live Run</h1>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Executing <span className="font-medium text-foreground">{suite.name}</span> against {suite.agentUrl}
+          Executing <span className="font-medium text-foreground">{suite.name}</span> against <code className="font-mono">{run.agentUrl ?? suite.agentUrl}</code>
         </p>
       </div>
 
-      <RunLiveFeed runId={runId} suiteName={suite.name} totalCases={cases.length} />
+      <RunLiveFeed runId={runId} suiteName={suite.name} totalCases={cases.length} repeatCount={run.repeatCount} />
     </div>
   )
 }

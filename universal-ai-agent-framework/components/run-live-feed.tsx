@@ -1,23 +1,21 @@
 "use client"
 
-import { useEffect, useReducer, useCallback } from "react"
+import { useEffect, useReducer } from "react"
 import { useRouter } from "next/navigation"
-import { CheckCircle2, XCircle, Loader2, ChevronDown } from "lucide-react"
+import { CheckCircle2, XCircle, Loader2, ChevronDown, AlertTriangle } from "lucide-react"
 import { cn } from "@/lib/utils"
-import type { SSEEvent, TraceStep, AssertionResult } from "@/lib/types"
+import type { SSEEvent } from "@/lib/types"
 
 type TestState = {
   id: string
   name: string
-  status: "pending" | "running" | "passed" | "failed"
-  trace?: TraceStep[]
+  status: "running" | "passed" | "failed" | "flaky"
+  attempts: number
+  passedAttempts: number
+  doneAttempts: number
+  tokenUsage: number
   stepCount?: number
-  tokenUsage?: number
-  assertionsPassed?: boolean
-  assertionResults?: AssertionResult[]
-  semanticScore?: number
-  semanticReasoning?: string
-  hallucinated?: boolean
+  semanticScores: number[]
   failureReason?: string
   logs: string[]
 }
@@ -26,145 +24,121 @@ type RunState = {
   tests: TestState[]
   passed: number
   failed: number
-  avgSemantic: number
-  totalTokens: number
+  flaky: number
   semanticScores: number[]
+  totalTokens: number
   finished: boolean
   passRate: number
   error: string | null
 }
 
-type Action =
-  | { type: "TEST_STARTED"; id: string; name: string }
-  | { type: "TRACE_CAPTURED"; id: string; trace: TraceStep[]; stepCount: number; tokenUsage?: number }
-  | { type: "ASSERTIONS_EVALUATED"; id: string; passed: boolean; results: AssertionResult[] }
-  | { type: "SEMANTIC_SCORED"; id: string; score: number; reasoning: string; hallucinated: boolean }
-  | { type: "TEST_COMPLETED"; id: string; passed: boolean; failureReason?: string; tokenUsage?: number }
-  | { type: "RUN_COMPLETED"; passRate: number; totalPassed: number; totalFailed: number }
-  | { type: "ERROR"; message: string }
+const initial: RunState = {
+  tests: [], passed: 0, failed: 0, flaky: 0, semanticScores: [], totalTokens: 0,
+  finished: false, passRate: 0, error: null,
+}
 
-function reducer(state: RunState, action: Action): RunState {
-  switch (action.type) {
-    case "TEST_STARTED":
+function updateTest(state: RunState, id: string, fn: (t: TestState) => TestState): RunState {
+  return { ...state, tests: state.tests.map((t) => (t.id === id ? fn(t) : t)) }
+}
+
+function reducer(state: RunState, e: SSEEvent): RunState {
+  const tag = (t: TestState, attempt: number) => (t.attempts > 1 ? `Attempt ${attempt}/${t.attempts}: ` : "")
+  switch (e.type) {
+    case "test_started":
       return {
         ...state,
-        tests: [...state.tests, { id: action.id, name: action.name, status: "running", logs: ["Agent called..."] }],
+        tests: [...state.tests, {
+          id: e.testCaseId, name: e.name, status: "running", attempts: e.attempts, passedAttempts: 0,
+          doneAttempts: 0, tokenUsage: 0, semanticScores: [], logs: [],
+        }],
       }
-    case "TRACE_CAPTURED":
+    case "attempt_started":
+      return updateTest(state, e.testCaseId, (t) => ({ ...t, logs: [...t.logs, `${tag(t, e.attempt)}calling agent…`] }))
+    case "trace_captured":
+      return updateTest(state, e.testCaseId, (t) => ({
+        ...t, stepCount: e.stepCount,
+        logs: [...t.logs, `${tag(t, e.attempt)}trace captured — ${e.trace.map((s) => s.tool).join(" → ") || "no tool calls"}`],
+      }))
+    case "assertions_evaluated": {
+      const ok = e.results.filter((r) => r.passed).length
+      return updateTest(state, e.testCaseId, (t) => ({
+        ...t, logs: [...t.logs, `${tag(t, e.attempt)}assertions ${ok}/${e.results.length} passed`],
+      }))
+    }
+    case "semantic_scored":
       return {
-        ...state,
-        tests: state.tests.map((t) =>
-          t.id === action.id
-            ? { ...t, trace: action.trace, stepCount: action.stepCount, tokenUsage: action.tokenUsage, logs: [...t.logs, `Trace captured (${action.stepCount} steps)`] }
-            : t
-        ),
+        ...updateTest(state, e.testCaseId, (t) => ({
+          ...t, semanticScores: [...t.semanticScores, e.score],
+          logs: [...t.logs, `${tag(t, e.attempt)}semantic score ${e.score}/100${e.hallucinated ? " ⚠ possible hallucination" : ""}`],
+        })),
+        semanticScores: [...state.semanticScores, e.score],
       }
-    case "ASSERTIONS_EVALUATED": {
-      const passed = action.results.filter((r) => r.passed).length
+    case "attempt_completed":
       return {
-        ...state,
-        tests: state.tests.map((t) =>
-          t.id === action.id
-            ? { ...t, assertionsPassed: action.passed, assertionResults: action.results, logs: [...t.logs, `Assertions: ${passed}/${action.results.length} passed`] }
-            : t
-        ),
+        ...updateTest(state, e.testCaseId, (t) => ({
+          ...t,
+          doneAttempts: t.doneAttempts + 1,
+          passedAttempts: t.passedAttempts + (e.passed ? 1 : 0),
+          tokenUsage: t.tokenUsage + e.tokenUsage,
+          logs: [...t.logs, `${tag(t, e.attempt)}${e.passed ? "✓ passed" : `✗ failed — ${e.failureReason ?? "unknown reason"}`}`],
+        })),
+        totalTokens: state.totalTokens + e.tokenUsage,
+      }
+    case "test_completed": {
+      const status = e.passed ? "passed" : e.flaky ? "flaky" : "failed"
+      return {
+        ...updateTest(state, e.testCaseId, (t) => ({ ...t, status, failureReason: e.failureReason })),
+        passed: state.passed + (e.passed ? 1 : 0),
+        failed: state.failed + (e.passed ? 0 : 1),
+        flaky: state.flaky + (e.flaky ? 1 : 0),
       }
     }
-    case "SEMANTIC_SCORED": {
-      const newScores = [...state.semanticScores, action.score]
-      return {
-        ...state,
-        semanticScores: newScores,
-        avgSemantic: Math.round(newScores.reduce((a, b) => a + b, 0) / newScores.length),
-        tests: state.tests.map((t) =>
-          t.id === action.id
-            ? { ...t, semanticScore: action.score, semanticReasoning: action.reasoning, hallucinated: action.hallucinated, logs: [...t.logs, `Semantic score: ${action.score}/100${action.hallucinated ? " ⚠️ hallucination detected" : ""}`] }
-            : t
-        ),
-      }
-    }
-    case "TEST_COMPLETED": {
-      const tokenDelta = action.tokenUsage ?? 0
-      return {
-        ...state,
-        passed: action.passed ? state.passed + 1 : state.passed,
-        failed: !action.passed ? state.failed + 1 : state.failed,
-        totalTokens: state.totalTokens + tokenDelta,
-        tests: state.tests.map((t) =>
-          t.id === action.id
-            ? { ...t, status: action.passed ? "passed" : "failed", failureReason: action.failureReason, tokenUsage: action.tokenUsage ?? t.tokenUsage }
-            : t
-        ),
-      }
-    }
-    case "RUN_COMPLETED":
-      return { ...state, finished: true, passRate: action.passRate, passed: action.totalPassed, failed: action.totalFailed }
-    case "ERROR":
-      return { ...state, error: action.message, finished: true }
+    case "run_completed":
+      return { ...state, finished: true, passRate: e.passRate, passed: e.totalPassed, failed: e.totalFailed, flaky: e.totalFlaky }
+    case "error":
+      return { ...state, error: e.message, finished: true }
     default:
       return state
   }
 }
 
-const initial: RunState = {
-  tests: [], passed: 0, failed: 0, avgSemantic: 0, totalTokens: 0,
-  semanticScores: [], finished: false, passRate: 0, error: null,
-}
+const EVENT_TYPES: SSEEvent["type"][] = [
+  "test_started", "attempt_started", "trace_captured", "assertions_evaluated",
+  "semantic_scored", "attempt_completed", "test_completed", "run_completed", "error",
+]
 
-type Props = {
-  runId: string
-  suiteName: string
-  totalCases: number
-}
+type Props = { runId: string; suiteName: string; totalCases: number; repeatCount: number }
 
-export function RunLiveFeed({ runId, suiteName, totalCases }: Props) {
+export function RunLiveFeed({ runId, suiteName, totalCases, repeatCount }: Props) {
   const [state, dispatch] = useReducer(reducer, initial)
   const router = useRouter()
 
-  const handleEvent = useCallback((event: SSEEvent) => {
-    switch (event.type) {
-      case "test_started":
-        dispatch({ type: "TEST_STARTED", id: event.testCaseId, name: event.name }); break
-      case "trace_captured":
-        dispatch({ type: "TRACE_CAPTURED", id: event.testCaseId, trace: event.trace, stepCount: event.stepCount ?? event.trace.length }); break
-      case "assertions_evaluated":
-        dispatch({ type: "ASSERTIONS_EVALUATED", id: event.testCaseId, passed: event.passed, results: event.results }); break
-      case "semantic_scored":
-        dispatch({ type: "SEMANTIC_SCORED", id: event.testCaseId, score: event.score, reasoning: event.reasoning, hallucinated: event.hallucinated }); break
-      case "test_completed":
-        dispatch({ type: "TEST_COMPLETED", id: event.testCaseId, passed: event.passed, failureReason: event.failureReason, tokenUsage: event.tokenUsage }); break
-      case "run_completed":
-        dispatch({ type: "RUN_COMPLETED", passRate: event.passRate, totalPassed: event.totalPassed, totalFailed: event.totalFailed }); break
-      case "error":
-        dispatch({ type: "ERROR", message: event.message }); break
-    }
-  }, [])
-
   useEffect(() => {
     const es = new EventSource(`/api/stream/${runId}`)
-    es.addEventListener("message", (e) => {
-      try { handleEvent(JSON.parse(e.data) as SSEEvent) } catch { /* ignore */ }
-    })
-    const events: SSEEvent["type"][] = ["test_started", "trace_captured", "assertions_evaluated", "semantic_scored", "test_completed", "run_completed", "error"]
-    events.forEach((evtName) => {
-      es.addEventListener(evtName, (e: MessageEvent) => {
-        try { handleEvent({ type: evtName, ...JSON.parse(e.data) } as SSEEvent) } catch { /* ignore */ }
+    for (const type of EVENT_TYPES) {
+      es.addEventListener(type, (e: MessageEvent) => {
+        try { dispatch({ type, ...JSON.parse(e.data) } as SSEEvent) } catch { /* ignore malformed event */ }
       })
-    })
-    es.onerror = () => { es.close() }
+    }
+    es.onerror = () => es.close()
     return () => es.close()
-  }, [runId, handleEvent])
+  }, [runId])
 
-  const completed = state.tests.filter((t) => t.status !== "running" && t.status !== "pending").length
-  const progressPct = totalCases > 0 ? Math.round((completed / totalCases) * 100) : 0
+  const doneAttempts = state.tests.reduce((s, t) => s + t.doneAttempts, 0)
+  const totalAttempts = totalCases * repeatCount
+  const progressPct = state.finished ? 100 : totalAttempts > 0 ? Math.round((doneAttempts / totalAttempts) * 100) : 0
+  const avgSemantic = state.semanticScores.length
+    ? Math.round(state.semanticScores.reduce((a, b) => a + b, 0) / state.semanticScores.length)
+    : null
+  const completed = state.tests.filter((t) => t.status !== "running").length
 
   return (
     <div className="space-y-4">
-      {/* Progress */}
       <div>
         <div className="flex items-center justify-between mb-1.5">
           <span className="text-sm font-medium text-foreground">
             Running: <span className="font-semibold">{suiteName}</span>
+            {repeatCount > 1 && <span className="ml-2 text-xs text-muted-foreground">({repeatCount} attempts per test)</span>}
           </span>
           <span className="text-xs text-muted-foreground">{completed}/{totalCases} tests</span>
         </div>
@@ -172,9 +146,7 @@ export function RunLiveFeed({ runId, suiteName, totalCases }: Props) {
           <div
             className={cn(
               "h-full rounded-full transition-all duration-500",
-              state.finished
-                ? state.failed === 0 ? "bg-emerald-500" : "bg-red-500"
-                : "bg-primary"
+              state.finished ? (state.failed === 0 ? "bg-emerald-500" : "bg-red-500") : "bg-primary"
             )}
             style={{ width: `${progressPct}%` }}
           />
@@ -187,14 +159,14 @@ export function RunLiveFeed({ runId, suiteName, totalCases }: Props) {
         </div>
       )}
 
-      {/* Stats */}
-      <div className="grid grid-cols-5 gap-2">
+      <div className={cn("grid gap-2", repeatCount > 1 ? "grid-cols-3 sm:grid-cols-6" : "grid-cols-3 sm:grid-cols-5")}>
         {[
           { label: "Passed", value: state.passed, color: "text-emerald-500" },
           { label: "Failed", value: state.failed, color: "text-red-500" },
-          { label: "Pass Rate", value: `${state.passRate}%`, color: "text-foreground" },
-          { label: "Avg Semantic", value: state.avgSemantic > 0 ? `${state.avgSemantic}/100` : "—", color: "text-foreground" },
-          { label: "Total Tokens", value: state.totalTokens > 0 ? state.totalTokens : "—", color: "text-foreground" },
+          ...(repeatCount > 1 ? [{ label: "Flaky", value: state.flaky, color: "text-amber-500" }] : []),
+          { label: "Pass Rate", value: state.finished ? `${state.passRate}%` : "—", color: "text-foreground" },
+          { label: "Avg Semantic", value: avgSemantic !== null ? `${avgSemantic}/100` : "—", color: "text-foreground" },
+          { label: "Total Tokens", value: state.totalTokens > 0 ? state.totalTokens.toLocaleString() : "—", color: "text-foreground" },
         ].map((s) => (
           <div key={s.label} className="bg-card border border-border rounded-lg p-3 text-center">
             <div className={cn("text-lg font-bold", s.color)}>{s.value}</div>
@@ -203,12 +175,9 @@ export function RunLiveFeed({ runId, suiteName, totalCases }: Props) {
         ))}
       </div>
 
-      {/* Test cards */}
       <div className="space-y-1.5">
-        {state.tests.map((test) => (
-          <TestCard key={test.id} test={test} />
-        ))}
-        {state.tests.length === 0 && (
+        {state.tests.map((test) => <TestCard key={test.id} test={test} />)}
+        {state.tests.length === 0 && !state.error && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Loader2 className="w-4 h-4 animate-spin" />
             Waiting for tests to start…
@@ -231,48 +200,49 @@ export function RunLiveFeed({ runId, suiteName, totalCases }: Props) {
 }
 
 function TestCard({ test }: { test: TestState }) {
-  const isRunning = test.status === "running"
-  const isPassed = test.status === "passed"
-  const isFailed = test.status === "failed"
+  const avgSem = test.semanticScores.length
+    ? Math.round(test.semanticScores.reduce((a, b) => a + b, 0) / test.semanticScores.length)
+    : null
 
   return (
-    <details className="group bg-card border border-border rounded-lg overflow-hidden">
+    <details className="group bg-card border border-border rounded-lg overflow-hidden" open={test.status === "running"}>
       <summary className="flex items-center gap-3 px-3 py-2.5 cursor-pointer list-none hover:bg-muted/30 select-none transition-colors">
         <span className="flex-shrink-0">
-          {isRunning && <Loader2 className="w-3.5 h-3.5 text-primary animate-spin" />}
-          {isPassed && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />}
-          {isFailed && <XCircle className="w-3.5 h-3.5 text-red-500" />}
+          {test.status === "running" && <Loader2 className="w-3.5 h-3.5 text-primary animate-spin" />}
+          {test.status === "passed" && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />}
+          {test.status === "failed" && <XCircle className="w-3.5 h-3.5 text-red-500" />}
+          {test.status === "flaky" && <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />}
         </span>
-        <span className={cn("text-sm font-medium flex-1", isFailed ? "text-destructive" : "text-foreground")}>
+        <span className={cn("text-sm font-medium flex-1 min-w-0 truncate", test.status === "failed" ? "text-destructive" : "text-foreground")}>
           {test.name}
         </span>
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          {test.stepCount !== undefined && <span>{test.stepCount} steps</span>}
-          {test.tokenUsage !== undefined && <span>{test.tokenUsage} tokens</span>}
-          {test.semanticScore !== undefined && (
+        <div className="flex items-center gap-3 text-xs text-muted-foreground flex-shrink-0">
+          {test.attempts > 1 && (
             <span className={cn(
               "font-semibold",
-              test.semanticScore >= 80 ? "text-emerald-500" :
-              test.semanticScore >= 50 ? "text-amber-500" :
-              "text-destructive"
+              test.status === "flaky" ? "text-amber-500" : test.status === "failed" ? "text-red-500" : test.status === "passed" ? "text-emerald-500" : ""
             )}>
-              {test.semanticScore}/100 sem
+              {test.passedAttempts}/{test.doneAttempts || test.attempts} passed{test.status === "flaky" ? " · flaky" : ""}
+            </span>
+          )}
+          {test.stepCount !== undefined && <span className="hidden sm:inline">{test.stepCount} steps</span>}
+          {test.tokenUsage > 0 && <span className="hidden sm:inline">{test.tokenUsage.toLocaleString()} tokens</span>}
+          {avgSem !== null && (
+            <span className={cn("font-semibold", avgSem >= 80 ? "text-emerald-500" : avgSem >= 50 ? "text-amber-500" : "text-destructive")}>
+              {avgSem}/100
             </span>
           )}
         </div>
-        {isFailed && test.failureReason && (
-          <span className="text-xs text-destructive truncate max-w-[180px]">{test.failureReason}</span>
-        )}
-        <ChevronDown className="w-3.5 h-3.5 text-muted-foreground group-open:rotate-180 transition-transform" />
+        <ChevronDown className="w-3.5 h-3.5 text-muted-foreground group-open:rotate-180 transition-transform flex-shrink-0" />
       </summary>
       <div className="px-3 pb-2.5 pt-2 border-t border-border space-y-1">
         {test.logs.map((log, i) => (
-          <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30 flex-shrink-0" />
-            {log}
+          <div key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
+            <span className="w-1.5 h-1.5 mt-1.5 rounded-full bg-muted-foreground/30 flex-shrink-0" />
+            <span className="break-words">{log}</span>
           </div>
         ))}
-        {isRunning && (
+        {test.status === "running" && (
           <div className="flex items-center gap-2 text-xs text-primary">
             <Loader2 className="w-3 h-3 animate-spin" />
             Processing…

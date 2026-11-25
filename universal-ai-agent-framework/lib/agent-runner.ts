@@ -2,7 +2,7 @@ import dns from "node:dns/promises"
 import net from "node:net"
 import type { TraceStep } from "./types"
 
-const AGENT_TIMEOUT_MS = 45_000
+const AGENT_TIMEOUT_MS = 100_000
 
 export class AgentRunnerError extends Error {
   constructor(

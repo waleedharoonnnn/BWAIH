@@ -19,6 +19,9 @@ export async function GET() {
         status: testRuns.status,
         passCount: testRuns.passCount,
         failCount: testRuns.failCount,
+        flakyCount: testRuns.flakyCount,
+        agentUrl: testRuns.agentUrl,
+        repeatCount: testRuns.repeatCount,
         startedAt: testRuns.startedAt,
         completedAt: testRuns.completedAt,
         suiteName: testSuites.name,
@@ -51,7 +54,12 @@ export async function POST(req: NextRequest) {
 
     const [run] = await db
       .insert(testRuns)
-      .values({ suiteId: parsed.data.suiteId, status: "running" })
+      .values({
+        suiteId: parsed.data.suiteId,
+        status: "running",
+        agentUrl: suite.agentUrl,
+        repeatCount: suite.repeatCount,
+      })
       .returning()
 
     return Response.json({ runId: run.id }, { status: 201 })

@@ -18,6 +18,7 @@ const createSuiteSchema = z.object({
   ),
   agentAuthKey: z.string().optional(),
   judgeModel: z.string().optional(),
+  repeatCount: z.number().int().min(1).max(5).optional(),
 })
 
 export async function GET() {
@@ -30,6 +31,7 @@ export async function GET() {
         agentUrl: testSuites.agentUrl,
         hasAuthKey: sql<boolean>`(${testSuites.agentAuthKey} is not null)`,
         judgeModel: testSuites.judgeModel,
+        repeatCount: testSuites.repeatCount,
         createdAt: testSuites.createdAt,
         testCaseCount: sql<number>`count(${testCases.id})::int`,
       })
@@ -65,6 +67,7 @@ export async function POST(req: NextRequest) {
         agentUrl: parsed.data.agentUrl,
         agentAuthKey: parsed.data.agentAuthKey ?? null,
         judgeModel: resolvedModel,
+        repeatCount: parsed.data.repeatCount ?? 1,
       })
       .returning()
 

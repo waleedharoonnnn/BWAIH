@@ -18,6 +18,7 @@ const updateSuiteSchema = z.object({
   ).optional(),
   agentAuthKey: z.string().optional().nullable(),
   judgeModel: z.string().refine((v) => VALID_MODEL_IDS.includes(v), "Invalid judge model").optional(),
+  repeatCount: z.number().int().min(1).max(5).optional(),
 })
 
 export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {

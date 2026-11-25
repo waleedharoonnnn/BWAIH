@@ -13,6 +13,7 @@ type Initial = {
   description: string
   agentUrl: string
   judgeModel?: string
+  repeatCount: number
   hasAuthKey: boolean
 }
 
@@ -25,6 +26,7 @@ export function EditSuiteForm({ suiteId, initial }: { suiteId: string; initial: 
     agentUrl: initial.agentUrl,
     agentAuthKey: "",
     judgeModel: initial.judgeModel ?? DEFAULT_JUDGE_MODEL,
+    repeatCount: String(initial.repeatCount),
   })
 
   function set(field: string, value: string) {
@@ -52,6 +54,7 @@ export function EditSuiteForm({ suiteId, initial }: { suiteId: string; initial: 
           description: form.description || null,
           agentUrl: form.agentUrl.trim(),
           judgeModel: form.judgeModel,
+          repeatCount: Number(form.repeatCount),
           // Only send the key if the user actually typed a new one — blank means "keep existing"
           ...(form.agentAuthKey ? { agentAuthKey: form.agentAuthKey } : {}),
         }),
@@ -121,6 +124,25 @@ export function EditSuiteForm({ suiteId, initial }: { suiteId: string; initial: 
               onChange={(e) => set("agentUrl", e.target.value)}
               className="w-full h-9 px-3 text-sm border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring font-mono"
             />
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+              <span className="text-xs text-muted-foreground">Built-in agent:</span>
+              {[
+                { label: "v1 — original", url: "/api/agent" },
+                { label: "v2 — edited tool descriptions", url: "/api/agent?version=v2" },
+              ].map((p) => (
+                <button
+                  key={p.url}
+                  type="button"
+                  onClick={() => set("agentUrl", p.url)}
+                  className={cn(
+                    "px-2 py-0.5 text-xs rounded border transition-colors",
+                    form.agentUrl === p.url ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:bg-muted"
+                  )}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div>
@@ -134,6 +156,33 @@ export function EditSuiteForm({ suiteId, initial }: { suiteId: string; initial: 
               placeholder={initial.hasAuthKey ? "•••••••• (set — leave blank to keep it)" : "Bearer token or API key"}
               className="w-full h-9 px-3 text-sm border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1">
+              Runs per test <span className="text-muted-foreground font-normal text-xs">— reliability check</span>
+            </label>
+            <div className="flex gap-1.5">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => set("repeatCount", String(n))}
+                  className={cn(
+                    "w-9 h-9 text-sm font-medium rounded-md border transition-colors",
+                    Number(form.repeatCount) === n
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border text-muted-foreground hover:bg-muted"
+                  )}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Agents are non-deterministic. Running each test several times shows a pass rate and flags flaky tests.
+              More runs use more tokens and take longer.
+            </p>
           </div>
 
           <div>
